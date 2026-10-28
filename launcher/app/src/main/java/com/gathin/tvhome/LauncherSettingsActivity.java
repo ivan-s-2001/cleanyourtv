@@ -38,6 +38,7 @@ public final class LauncherSettingsActivity extends Activity {
     private TextView followThemeChoice;
     private TextView openOnStartChoice;
     private TextView watchShelfChoice;
+    private TextView autoTunnelChoice, backgroundCleanupChoice;
     private static final int WATCH_PERMISSION_REQUEST = 84;
     private int columns;
     private int rowsBelowDock;
@@ -68,6 +69,11 @@ public final class LauncherSettingsActivity extends Activity {
             }
         });
         findViewById(R.id.happYoutubeChoice).setOnClickListener(v -> HappSetup.show(this));
+        autoTunnelChoice = findViewById(R.id.autoTunnelChoice);
+        backgroundCleanupChoice = findViewById(R.id.backgroundCleanupChoice);
+        autoTunnelChoice.setOnClickListener(v -> toggleAutomation(AppAutomationService.VPN_KEY));
+        backgroundCleanupChoice.setOnClickListener(v -> toggleAutomation(AppAutomationService.CLEANUP_KEY));
+        findViewById(R.id.automationServiceChoice).setOnClickListener(v -> openAutomationPermission());
         View reorderChoice = findViewById(R.id.reorderChoice);
         reorderChoice.setVisibility(config.launcherSettingsButton ? View.VISIBLE : View.GONE);
         reorderChoice.setOnClickListener(v -> {
@@ -296,6 +302,10 @@ public final class LauncherSettingsActivity extends Activity {
     }
 
     private void refresh() {
+        autoTunnelChoice.setText(getString(R.string.auto_tunnel_state,
+                getString(choices.getBoolean(AppAutomationService.VPN_KEY, false) ? R.string.on : R.string.off)));
+        backgroundCleanupChoice.setText(getString(R.string.background_cleanup_state,
+                getString(choices.getBoolean(AppAutomationService.CLEANUP_KEY, false) ? R.string.on : R.string.off)));
         watchShelfChoice.setText(getString(R.string.watch_shelf_state,
                 getString(choices.getBoolean(WatchShelf.KEY, false) ? R.string.on : R.string.off)));
         for (int i = 0; i < columnChoices.length; i++) {
@@ -341,6 +351,36 @@ public final class LauncherSettingsActivity extends Activity {
         choices.edit().putBoolean(WatchShelf.KEY, enabled).apply();
         changed();
         refresh();
+    }
+
+    private void openAutomationPermission() {
+        open(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+    }
+
+    private void toggleAutomation(String key) {
+        if (choices.getBoolean(key, false)) {
+            choices.edit().putBoolean(key, false).apply();
+            refresh();
+            return;
+        }
+        boolean vpn = AppAutomationService.VPN_KEY.equals(key);
+        if (vpn && !HappControl.supported(this)) {
+            Toast.makeText(this, R.string.automation_happ_failed, Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (!vpn && android.os.Build.VERSION.SDK_INT >= 34) {
+            Toast.makeText(this, R.string.background_cleanup_unsupported, Toast.LENGTH_LONG).show();
+            return;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(vpn ? R.string.auto_tunnel_title : R.string.background_cleanup_title)
+                .setMessage(vpn ? R.string.auto_tunnel_help : R.string.background_cleanup_help)
+                .setPositiveButton(R.string.enable, (dialog, which) -> {
+                    choices.edit().putBoolean(key, true).apply();
+                    refresh();
+                    openAutomationPermission();
+                })
+                .setNegativeButton(android.R.string.cancel, null).show();
     }
 
     @Override

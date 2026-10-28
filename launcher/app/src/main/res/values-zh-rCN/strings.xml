@@ -163,8 +163,19 @@
     <string name="watch_new">New release</string>
     <string name="watch_list">Watchlist</string>
     <string name="watch_recommended">Recommendations</string>
-    <string name="happ_youtube_title">Happ: VPN only for YouTube</string>
+    <string name="happ_youtube_title">Happ: YouTube routing profile</string>
     <string name="happ_youtube_help">Import and activate “CleanYourTV - YouTube only” in Happ for your subscription, then reconnect Happ. YouTube domains use the VPN server; all other traffic connects directly. Happ stays connected. Your existing server subscription is required. Provider-locked JSON subscriptions cannot import a routing profile; use Happ Settings → Proxy for selected apps → On and select only YouTube (or SmartTube).</string>
     <string name="happ_youtube_import">Import into Happ</string>
     <string name="happ_youtube_missing">Happ could not open the profile. Install or update Happ, or select only YouTube in its per-app proxy settings.</string>
+    <string name="automation_service_title">CleanYourTV app automation</string>
+    <string name="automation_permission_title">App automation access</string>
+    <string name="automation_description">In Android accessibility settings, enable CleanYourTV app automation. It observes activity changes without reading screen contents or remote keys. Both features are optional and off by default.</string>
+    <string name="auto_tunnel_title">Automatic YouTube tunnel</string>
+    <string name="auto_tunnel_state">Automatic YouTube tunnel: %1$s</string>
+    <string name="auto_tunnel_help">Open YouTube or SmartTube: send Connect to Happ. Leave for another app or turn off the screen: send Disconnect. Configure Happ, select a server and allow VPN once manually first. Enable CleanYourTV app automation in accessibility settings. Commands do not wait for the connection to finish; unsupported versions show an error.</string>
+    <string name="automation_happ_failed">Happ could not accept the tunnel command. Update Happ, select a server and connect once manually. If the tunnel is still on, disconnect it in Happ.</string>
+    <string name="background_cleanup_title">Release background apps after 5 minutes</string>
+    <string name="background_cleanup_state">Release background after 5 minutes: %1$s</string>
+    <string name="background_cleanup_help">On Android 8–13, request release of each ordinary app’s background processes 5 minutes after leaving it. Returning cancels its timer. System packages, keyboards, VPNs and launchers are excluded; preinstalled YouTube is included. This is not a force stop or removal from Recents: Android may refuse or restart processes. Closing cached apps can slow later launches. Enable CleanYourTV app automation in accessibility settings.</string>
+    <string name="background_cleanup_unsupported">Android 14 and later do not let apps release other apps’ background processes.</string>
 </resources>

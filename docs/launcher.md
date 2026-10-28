@@ -66,9 +66,19 @@ The launcher's own page has these rows, top to bottom:
 - **History above favourites** (personal fork, off by default): public Continue watching and preview
   cards for the focused favourite. Requires the TV listings permission; Up enters cards, OK opens the
   programme, Down or Back returns. Only data published by the app is visible.
-- **Happ: VPN only for YouTube** (personal fork): imports a YouTube-only routing profile into Happ.
+- **Happ: YouTube routing profile** (personal fork): imports an optional YouTube-only routing profile into Happ.
   Reconnect Happ after activating it for the subscription; other traffic goes directly. The tunnel stays
   connected. See the [setup and limitations](favorites-history-happ.ru.md).
+- **Automatic YouTube tunnel** (personal fork, off by default): send separate Happ connect/disconnect commands
+  when entering/leaving YouTube or SmartTube. Switching off the screen also disconnects. Configure a server
+  and approve VPN in Happ manually once before using it.
+- **Release background after 5 minutes** (personal fork, off by default): on Android 8–13, request release
+  of each ordinary app's background processes five minutes after leaving it. Returning cancels its timer.
+  System packages and essential helpers are excluded; preinstalled YouTube is included. This does not force-stop
+  apps or remove recent tasks and is not a system performance guarantee. Android 14+ does not permit it.
+- **App automation access** opens Android accessibility settings to enable **CleanYourTV app automation**.
+  The service reads activity changes only, without window contents, gestures or key filtering. It performs
+  no polling, and subscribes to no window events while both features are off.
 - **Choose default home** opens Android's home picker, and **TV system settings** the TV's own settings
   page.
 

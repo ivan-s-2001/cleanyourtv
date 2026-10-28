@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Integration identities, not a theme/config key. Browsers and unrelated Google apps are excluded. -->
+    <string-array name="youtube_vpn_apps" translatable="false">
+        <item>com.google.android.youtube.tv</item>
+        <item>com.google.android.youtube</item>
+        <item>org.smarttube.stable</item>
+        <item>org.smarttube.beta</item>
+        <item>com.teamsmart.videomanager.tv</item>
+    </string-array>
+</resources>

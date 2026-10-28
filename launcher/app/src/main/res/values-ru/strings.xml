@@ -166,8 +166,19 @@
     <string name="watch_new">Новинка</string>
     <string name="watch_list">Буду смотреть</string>
     <string name="watch_recommended">Рекомендации</string>
-    <string name="happ_youtube_title">Happ: VPN только для YouTube</string>
+    <string name="happ_youtube_title">Happ: профиль маршрутизации YouTube</string>
     <string name="happ_youtube_help">Импортируй и активируй профиль «CleanYourTV - YouTube only» в Happ для своей подписки, затем переподключи Happ. Домены YouTube пойдут через VPN, остальной трафик — напрямую. Сам Happ останется подключённым. Нужна твоя действующая подписка на сервер. Если провайдер заблокировал маршрутизацию JSON-подписки: в Happ открой Настройки → Прокси для выбранных приложений → ВКЛ и отметь только YouTube (или SmartTube).</string>
     <string name="happ_youtube_import">Импортировать в Happ</string>
     <string name="happ_youtube_missing">Не удалось открыть профиль в Happ. Установи или обнови Happ либо выбери только YouTube в его настройках прокси для приложений.</string>
+    <string name="automation_service_title">CleanYourTV — автоматика приложений</string>
+    <string name="automation_permission_title">Разрешение для автоматики приложений</string>
+    <string name="automation_description">В специальных возможностях Android включи «CleanYourTV — автоматика приложений». Служба отслеживает смену приложений, не читая экран и нажатия пульта. Обе функции включаются отдельно и по умолчанию выключены.</string>
+    <string name="auto_tunnel_title">Автоматический туннель YouTube</string>
+    <string name="auto_tunnel_state">Авто-VPN для YouTube: %1$s</string>
+    <string name="auto_tunnel_help">Открываешь YouTube или SmartTube — Happ получает команду включить туннель. Переходишь в другое приложение или выключаешь экран — отключить. Сначала один раз выбери сервер в Happ и подключись вручную, разрешив VPN. Затем включи службу «CleanYourTV — автоматика приложений» в специальных возможностях. Команды не ждут завершения подключения; если версия Happ их не поддерживает, появится ошибка.</string>
+    <string name="automation_happ_failed">Happ не смог принять команду туннеля. Обнови Happ, выбери сервер и один раз подключись вручную. Если туннель остался включённым, отключи его в Happ.</string>
+    <string name="background_cleanup_title">Выгрузка фона через 5 минут</string>
+    <string name="background_cleanup_state">Выгрузка фона через 5 минут: %1$s</string>
+    <string name="background_cleanup_help">На Android 8–13 через 5 минут после выхода из обычного приложения запрашивать выгрузку его фоновых процессов. Возвращение отменяет таймер. Системные пакеты, клавиатуры, VPN и лаунчеры исключены; предустановленный YouTube включён. Это не принудительная остановка и не удаление из недавних: Android может отказать или запустить процессы заново. Закрытие кэша может замедлить следующие запуски. Включи службу «CleanYourTV — автоматика приложений» в специальных возможностях.</string>
+    <string name="background_cleanup_unsupported">Начиная с Android 14 приложения не могут выгружать фоновые процессы других приложений.</string>
 </resources>
