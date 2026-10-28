@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.SoundEffectConstants;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
@@ -27,7 +28,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -52,6 +55,7 @@ final class WatchShelf {
     private volatile int generation;
     private boolean dirty = true, observing, changingFocus, compact;
     private int sectionIndex, cardHeight;
+    private final Map<Integer, Integer> selectedCards = new HashMap<>();
     private List<WatchSection> sections = Collections.emptyList();
     private WatchItem described;
     private final Runnable reload = this::load;
@@ -97,6 +101,7 @@ final class WatchShelf {
         lp.rightMargin = dp(68);
         root.addView(panel, lp);
         panel.setClipChildren(false);
+        panel.setClipToPadding(false);
         heading = text(15);
         heading.setTypeface(UiFont.get(activity, R.string.font_medium));
         heading.setLetterSpacing(0.02f);
@@ -133,7 +138,10 @@ final class WatchShelf {
         scroll.setHorizontalScrollBarEnabled(false);
         scroll.setClipToPadding(false);
         scroll.setClipChildren(false);
-        scroll.setPadding(dp(2), dp(4), dp(10), dp(4));
+        scroll.setPadding(dp(8), dp(8), dp(16), dp(8));
+        scroll.setSmoothScrollingEnabled(config.animations && !config.reducedMotion);
+        scroll.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+        scroll.setFocusable(false);
         row = new LinearLayout(activity);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setClipChildren(false);
@@ -176,18 +184,21 @@ final class WatchShelf {
         View clock = root.findViewById(R.id.leftBlock);
         clock.getDrawingRect(header);
         root.offsetDescendantRectToMyCoords(clock, header);
-        int room = (int) dockTop - header.bottom - dp(16);
+        // Leave air on both sides of the shelf, rather than touching the clock or dock.
+        int room = (int) dockTop - header.bottom - dp(24 + 24);
         if (room < dp(76)) { hide(); return; }
         int height = Math.min(dp(216), room);
         boolean wasCompact = compact;
         int previousCardHeight = cardHeight;
         compact = height < dp(150);
         heading.getLayoutParams().height = dp(compact ? 22 : 30);
-        cardHeight = height - dp(compact ? 30 : 38);
+        cardHeight = height - dp(compact ? 38 : 46);
         panel.getLayoutParams().height = height;
         panel.requestLayout();
-        panel.setY(Math.max(0, dockTop - height - dp(16)));
-        details.setVisibility(height < dp(150) ? View.GONE : View.VISIBLE);
+        panel.setY(Math.max(header.bottom + dp(24), dockTop - height - dp(24)));
+        details.setVisibility(compact ? View.GONE : View.VISIBLE);
+        title.setTextSize(height < dp(190) ? 24 : 30);
+        description.setMaxLines(height < dp(190) ? 2 : 4);
         panel.setVisibility(View.VISIBLE);
         if (!panel.hasFocus()) clearBackdrop();
         appLabel = label;
@@ -195,6 +206,8 @@ final class WatchShelf {
             generation++;
             pkg = packageName;
             sections = Collections.emptyList();
+            selectedCards.clear();
+            sectionIndex = 0;
             described = null;
             dirty = true;
             clearPictures();
@@ -246,8 +259,12 @@ final class WatchShelf {
     boolean managesFocus() { return changingFocus; }
 
     boolean focusFirst() {
-        return panel.getVisibility() == View.VISIBLE && row.getChildCount() > 0 && row.getChildAt(0).requestFocus();
+        if (panel.getVisibility() != View.VISIBLE || row.getChildCount() == 0) return false;
+        int index = Math.min(selectedCards.getOrDefault(sectionIndex, 0), row.getChildCount() - 1);
+        return row.getChildAt(index).requestFocus();
     }
+
+    void topBarFocused() { clearBackdrop(); }
 
     private void schedule() {
         main.removeCallbacks(reload);
@@ -271,6 +288,7 @@ final class WatchShelf {
                     if (panel.hasFocus()) { dirty = true; return; }
                     sections = WatchSection.group(result.items);
                     sectionIndex = 0;
+                    selectedCards.clear();
                     boolean empty = sections.isEmpty();
                     body.setVisibility(empty ? View.GONE : View.VISIBLE);
                     message.setVisibility(empty ? View.VISIBLE : View.GONE);
@@ -296,21 +314,24 @@ final class WatchShelf {
         heading.setText(sections.size() > 1 ? activity.getString(R.string.watch_section_nav,
                 name, sectionIndex + 1, sections.size()) : name);
         final String owner = pkg;
-        describe(section.items.get(0));
+        describe(section.items.get(Math.min(selectedCards.getOrDefault(sectionIndex, 0), section.items.size() - 1)));
         for (WatchItem item : section.items) {
             LinearLayout card = new LinearLayout(activity);
             card.setOrientation(LinearLayout.VERTICAL);
             card.setFocusable(true);
             card.setClickable(true);
+            card.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
             card.setClipChildren(false);
-            int width = compact ? Math.max(dp(84), Math.round((cardHeight - dp(12)) * 16f / 9f) + dp(12))
-                    : Math.max(dp(64), Math.round((cardHeight - dp(35)) * 2f / 3f) + dp(12));
+            // Every cover is 2:3, including the compact shelf above the classic app grid.
+            // Subtract caption and focus insets before deriving width, so the art itself keeps the ratio.
+            int posterHeight = Math.max(1, cardHeight - dp(23 + 12));
+            int width = Math.round(posterHeight * 2f / 3f) + dp(12);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(width, cardHeight);
-            lp.rightMargin = dp(10);
+            lp.rightMargin = dp(16);
             row.addView(card, lp);
             FrameLayout cover = new FrameLayout(activity);
             cover.setClipChildren(false);
-            card.addView(cover, new LinearLayout.LayoutParams(-1, 0, 1));
+            card.addView(cover, new LinearLayout.LayoutParams(-1, posterHeight + dp(12)));
             FrameLayout art = new FrameLayout(activity);
             // Same neutral fill and proportional corners as item_app / AppAdapter.
             GradientDrawable fill = new GradientDrawable();
@@ -329,7 +350,8 @@ final class WatchShelf {
             cover.addView(art, artLp);
             TextView fallback = text(14);
             fallback.setText(item.title);
-            fallback.setMaxLines(compact ? 2 : 4);
+            fallback.setMaxLines(compact ? 3 : 4);
+            fallback.setEllipsize(android.text.TextUtils.TruncateAt.END);
             fallback.setGravity(Gravity.CENTER);
             fallback.setPadding(dp(6), dp(4), dp(6), dp(4));
             art.addView(fallback, new FrameLayout.LayoutParams(-1, -1));
@@ -348,24 +370,17 @@ final class WatchShelf {
             caption.setAlpha(0.6f);
             caption.setGravity(Gravity.CENTER);
             caption.setText(item.title);
-            caption.setMaxLines(compact ? 2 : 1);
+            caption.setMaxLines(1);
             caption.setEllipsize(android.text.TextUtils.TruncateAt.END);
-            caption.setPadding(dp(6), dp(3), dp(6), 0);
-            if (compact) {
-                caption.setVisibility(View.GONE);
-                caption.setPadding(dp(4), dp(8), dp(4), dp(4));
-                caption.setBackground(new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-                        new int[]{0x00000000, 0xe6000000}));
-                art.addView(caption, new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM));
-            } else card.addView(caption, new LinearLayout.LayoutParams(-1, dp(23)));
+            caption.setPadding(dp(2), dp(5), dp(2), 0);
+            card.addView(caption, new LinearLayout.LayoutParams(-1, dp(23)));
             if (item.duration > 0 && item.position > 0) {
                 ProgressBar progress = new ProgressBar(activity, null, android.R.attr.progressBarStyleHorizontal);
                 progress.setMax(100);
                 progress.setProgress(item.progress());
                 progress.setProgressTintList(ColorStateList.valueOf(0xccffffff));
                 progress.setProgressBackgroundTintList(ColorStateList.valueOf(0x26ffffff));
-                if (compact) art.addView(progress, new FrameLayout.LayoutParams(-1, dp(2), Gravity.BOTTOM));
-                else card.addView(progress, new LinearLayout.LayoutParams(-1, dp(3)));
+                art.addView(progress, new FrameLayout.LayoutParams(-1, dp(3), Gravity.BOTTOM));
             }
             card.setContentDescription(sectionTitle(section) + ": " + item.title + " " + item.episode);
             card.setOnFocusChangeListener((v, focused) -> {
@@ -376,11 +391,29 @@ final class WatchShelf {
                 if (config.animations && !config.reducedMotion)
                     card.animate().scaleX(scale).scaleY(scale).setDuration(160).start();
                 else { card.setScaleX(scale); card.setScaleY(scale); }
-                if (focused) describe(item);
+                if (focused) {
+                    selectedCards.put(sectionIndex, row.indexOfChild(card));
+                    describe(item);
+                    // Include the full glow in the viewport, including the first and last poster.
+                    scroll.post(() -> {
+                        if (!card.isFocused() || card.getParent() != row) return;
+                        int left = Math.max(0, card.getLeft() - dp(8));
+                        int right = card.getRight() + dp(8);
+                        int target = scroll.getScrollX();
+                        if (left < target + scroll.getPaddingLeft()) target = left - scroll.getPaddingLeft();
+                        else if (right > target + scroll.getWidth() - scroll.getPaddingRight())
+                            target = right - scroll.getWidth() + scroll.getPaddingRight();
+                        if (config.animations && !config.reducedMotion) scroll.smoothScrollTo(Math.max(0, target), 0);
+                        else scroll.scrollTo(Math.max(0, target), 0);
+                    });
+                }
             });
             card.setOnClickListener(v -> open(owner, item.intentUri));
             card.setOnKeyListener((v, code, event) -> {
                 if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
+                // A held vertical key must not skip multiple programme groups or escape to the header.
+                if ((code == KeyEvent.KEYCODE_DPAD_UP || code == KeyEvent.KEYCODE_DPAD_DOWN)
+                        && event.getRepeatCount() > 0) return true;
                 if (code == KeyEvent.KEYCODE_DPAD_UP) {
                     if (sectionIndex + 1 < sections.size()) switchSection(sectionIndex + 1);
                     else goToTop.run();
@@ -391,13 +424,20 @@ final class WatchShelf {
                     else returnToTile.run();
                     return true;
                 }
-                return code == KeyEvent.KEYCODE_DPAD_LEFT && row.indexOfChild(card) == 0
-                        || code == KeyEvent.KEYCODE_DPAD_RIGHT && row.indexOfChild(card) == row.getChildCount() - 1;
+                if (code == KeyEvent.KEYCODE_DPAD_LEFT || code == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                    int target = row.indexOfChild(card) + (code == KeyEvent.KEYCODE_DPAD_LEFT ? -1 : 1);
+                    if (target >= 0 && target < row.getChildCount()) {
+                        row.getChildAt(target).requestFocus();
+                        card.playSoundEffect(code == KeyEvent.KEYCODE_DPAD_LEFT
+                                ? SoundEffectConstants.NAVIGATION_LEFT : SoundEffectConstants.NAVIGATION_RIGHT);
+                    }
+                    return true;
+                }
+                return false;
             });
             images.load(item.posterUri, false, bitmap -> {
                 poster.setImageBitmap(bitmap);
                 fallback.setVisibility(View.GONE);
-                if (compact) caption.setVisibility(View.VISIBLE);
             });
         }
     }

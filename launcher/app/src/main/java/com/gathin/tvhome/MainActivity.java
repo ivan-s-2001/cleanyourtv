@@ -663,8 +663,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             int gridRows = itemH * rowsBelowDock;
             // Keep the hero below the header when the library is enabled on a short screen,
             // even when the theme requests an extra visible row below the dock.
-            // Viewing widgets use the space above the dock; they must not push the app grid off-screen.
-            int shelfClearance = cfg.appLibrary ? hero.getMeasuredHeight() + (int) (40 * density) : 0;
+            // Keep readable portrait covers and gaps below the clock. The ordinary app grid stays
+            // directly under the dock and scrolls on Down if a short screen cannot show its whole last row.
+            int shelfClearance = watchShelf != null ? (int) (188 * density)
+                    : cfg.appLibrary ? hero.getMeasuredHeight() + (int) (40 * density) : 0;
             int want = Math.max(shelfClearance, h - dockRow - gridRows - (int) (AppAdapter.BOTTOM_ROOM_DP * density));
             // Where the rows cannot fit even at the smallest tile (3 rows with the title on), the title keeps its
             // room above the dock and the last rows run off the bottom instead of the title drawing over the clock.
@@ -846,7 +848,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
             if (keyCode == KeyEvent.KEYCODE_DPAD_UP) return true;
             if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-                // Back to the dock tile Up came from, not wherever the focus finder lands.
+                // Header -> last selected poster -> dock; no jump over the viewing shelf.
+                if (watchShelf != null && watchShelf.focusFirst()) return true;
                 focusTile(singleRow ? lastFocused : lastFocused % COLUMNS);
                 return true;
             }
@@ -878,7 +881,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         getWindow().getDecorView().getViewTreeObserver().addOnGlobalFocusChangeListener((oldF, newF) -> {
             boolean onTile = newF != null && newF.getId() == R.id.card;
             if (!onTile) hideGlass();
-            if (watchShelf != null && !watchShelf.managesFocus() && !onTile && !watchShelf.contains(newF)) watchShelf.hide();
+            if (watchShelf != null && !watchShelf.managesFocus() && !onTile && !watchShelf.contains(newF)) {
+                boolean onTopBar = newF != null && newF.getParent() == btnSettings.getParent();
+                if (onTopBar) watchShelf.topBarFocused();
+                else watchShelf.hide();
+            }
         });
 
         packageFilter.addAction(Intent.ACTION_PACKAGE_ADDED);

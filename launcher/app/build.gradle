@@ -11,8 +11,8 @@ android {
         applicationId providers.gradleProperty('launcherApplicationId').getOrElse('com.gathin.tvhome')
         minSdk 26
         targetSdk 34
-        versionCode 13
-        versionName '3.3-ru'
+        versionCode 14
+        versionName '3.4-ru'
         // Personal Russian build: keep the size/memory budget with the cinematic shelf.
         // Full translations remain in source; only Russian and English are packaged in this fork.
         resourceConfigurations += ['en', 'ru']
