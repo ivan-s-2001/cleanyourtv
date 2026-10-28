@@ -166,6 +166,20 @@
             android:layout_marginTop="18dp" />
 
         <TextView
+            android:id="@+id/vpnAppsChoice"
+            style="@style/SettingsRow"
+            android:layout_marginTop="18dp"
+            android:text="@string/vpn_apps_title" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7dp"
+            android:textColor="#FFACB8C1"
+            android:textSize="14sp"
+            android:text="@string/vpn_apps_help" />
+
+        <TextView
             android:id="@+id/automationServiceChoice"
             style="@style/SettingsRow"
             android:layout_marginTop="18dp"

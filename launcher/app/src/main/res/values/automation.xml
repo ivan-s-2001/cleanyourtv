@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Integration identities, not a theme/config key. Browsers and unrelated Google apps are excluded. -->
+    <!-- Default Auto VPN selection; the owner can select other launchable apps in Launcher settings.
+         Also retained as the narrow preinstalled-YouTube exception for Android 8-13 cleanup. -->
     <string-array name="youtube_vpn_apps" translatable="false">
         <item>com.google.android.youtube.tv</item>
         <item>com.google.android.youtube</item>

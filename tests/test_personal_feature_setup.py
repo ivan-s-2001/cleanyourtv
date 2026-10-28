@@ -59,6 +59,25 @@ class PersonalFeatureSetupTest(unittest.TestCase):
         self.assertIn('JAVA_VERSION="17\\.', source)
         self.assertIn('"-Dorg.gradle.java.home=$env:JAVA_HOME" --no-daemon', source)
 
+    def test_classic_layout_restoration_changes_only_layout_choices(self):
+        source = (JAVA / 'Config.java').read_text()
+        start = source.index('if (!choices.getBoolean("classic_home_restored_v1"')
+        end = source.index('int chosenColumns', start)
+        migration = source[start:end]
+        for key in ('"single_row"', '"app_library"', '"library_button"'):
+            self.assertIn('putBoolean(' + key + ', false)', migration)
+        self.assertIn('Math.max(1, choices.getInt(ROWS_BELOW_DOCK_KEY, rowsBelow))', migration)
+        for forbidden in ('clear()', 'wallpaper', 'dock_apps', 'youtube_auto_tunnel', 'auto_vpn_apps', 'Order.'):
+            self.assertNotIn(forbidden, migration)
+
+    def test_default_home_keeps_the_app_grid_below_the_dock(self):
+        config = ET.parse(ROOT / 'launcher/app/src/main/res/values/config.xml').getroot()
+        values = {p.get('name'): p.text for p in config}
+        for key in ('single_row', 'app_library', 'library_button'):
+            self.assertEqual('false', values[key])
+        self.assertEqual('true', values['dock_row'])
+        self.assertGreaterEqual(int(values['rows_below_dock']), 1)
+
 
 if __name__ == '__main__':
     unittest.main()

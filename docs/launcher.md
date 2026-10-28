@@ -70,9 +70,10 @@ The launcher's own page has these rows, top to bottom:
 - **Happ: YouTube routing profile** (personal fork): imports an optional YouTube-only routing profile into Happ.
   Reconnect Happ after activating it for the subscription; other traffic goes directly. The tunnel stays
   connected. See the [setup and limitations](favorites-history-happ.ru.md).
-- **Automatic YouTube tunnel** (personal fork, off by default): send separate Happ connect/disconnect commands
-  when entering/leaving YouTube or SmartTube. Switching off the screen also disconnects. Configure a server
+- **Auto VPN** (personal fork, off by default): send separate Happ connect/disconnect commands
+  when entering/leaving a selected app (YouTube and SmartTube by default). Switching off the screen also disconnects. Configure a server
   and approve VPN in Happ manually once before using it.
+- **Apps for Auto VPN** opens a checklist of installed launchable apps; selections are applied without restarting the service. Moving between selected apps keeps the tunnel connected.
 - **Release background after 5 minutes** (personal fork, off by default): on Android 8–13, request release
   of each ordinary app's background processes five minutes after leaving it. Returning cancels its timer.
   System packages and essential helpers are excluded; preinstalled YouTube is included. This does not force-stop

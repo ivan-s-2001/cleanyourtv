@@ -92,4 +92,39 @@ public class AppAutomationPolicyTest {
         assertTrue(p.takeDue(900000).isEmpty());
         assertEquals(Long.MAX_VALUE, p.nextDeadline());
     }
+
+    @Test public void selectedNonYoutubeAppsShareOneContinuousTunnel() {
+        AppAutomationPolicy p = new AppAutomationPolicy(new HashSet<>(Arrays.asList("browser", "cinema")));
+        p.foreground("browser", 0, false);
+        assertEquals(1, p.vpnCommand(true));
+        p.foreground("cinema", 10, false);
+        assertEquals(0, p.vpnCommand(true));
+        p.foreground("youtube", 20, false);
+        assertEquals(-1, p.vpnCommand(true));
+    }
+
+    @Test public void editingSelectionKeepsForegroundAndCleanupDeadlines() {
+        AppAutomationPolicy p = policy();
+        p.foreground("old", 0, true);
+        p.foreground("browser", 10, true);
+        assertEquals(0, p.vpnCommand(true));
+        p.setVpnApps(new HashSet<>(Arrays.asList("browser")));
+        assertEquals(1, p.vpnCommand(true));
+        assertEquals(300010, p.nextDeadline());
+        p.setVpnApps(new HashSet<>());
+        assertEquals(-1, p.vpnCommand(true));
+        assertEquals(0, p.vpnCommand(true));
+        assertEquals(Arrays.asList("old"), p.takeDue(300010));
+    }
+
+    @Test public void callerCannotChangeTheSelectionBehindThePolicy() {
+        HashSet<String> chosen = new HashSet<>(Arrays.asList("browser"));
+        AppAutomationPolicy p = new AppAutomationPolicy(chosen);
+        chosen.clear();
+        p.foreground("browser", 0, false);
+        assertEquals(1, p.vpnCommand(true));
+        p.setVpnApps(chosen);
+        chosen.add("browser");
+        assertEquals(-1, p.vpnCommand(true));
+    }
 }

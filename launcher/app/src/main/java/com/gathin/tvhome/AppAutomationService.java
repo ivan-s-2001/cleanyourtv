@@ -38,7 +38,7 @@ public final class AppAutomationService extends AccessibilityService {
     private boolean receiverRegistered, autoVpn, cleanup, connected;
     private final Runnable cleanupDue = this::cleanupDue;
     private final SharedPreferences.OnSharedPreferenceChangeListener preferenceChange = (preferences, key) -> {
-        if (VPN_KEY.equals(key) || CLEANUP_KEY.equals(key)) configure();
+        if (VPN_KEY.equals(key) || CLEANUP_KEY.equals(key) || VpnAppsPicker.KEY.equals(key)) configure();
     };
     private final BroadcastReceiver screen = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -55,7 +55,7 @@ public final class AppAutomationService extends AccessibilityService {
         connected = true;
         bound = true;
         youtubeApps = new HashSet<>(Arrays.asList(getResources().getStringArray(R.array.youtube_vpn_apps)));
-        policy = new AppAutomationPolicy(youtubeApps);
+        policy = new AppAutomationPolicy(VpnAppsPicker.selected(this));
         prefs = getSharedPreferences(Config.SETTINGS_NAME, MODE_PRIVATE);
         prefs.registerOnSharedPreferenceChangeListener(preferenceChange);
         configure();
@@ -63,7 +63,9 @@ public final class AppAutomationService extends AccessibilityService {
 
     private void configure() {
         if (!connected) return;
-        autoVpn = prefs.getBoolean(VPN_KEY, false);
+        Set<String> selected = VpnAppsPicker.selected(this);
+        policy.setVpnApps(selected);
+        autoVpn = prefs.getBoolean(VPN_KEY, false) && !selected.isEmpty();
         cleanup = Build.VERSION.SDK_INT < 34 && prefs.getBoolean(CLEANUP_KEY, false);
         if (!cleanup) {
             policy.cancelCleanup();

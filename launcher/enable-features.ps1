@@ -74,4 +74,4 @@ if ($final -notmatch 'service_bound=true') {
     throw 'The service is not connected. Check the device policy and accessibility log; do not repeat setup in a loop.'
 }
 if ($sdk -ge 34) { Write-Host 'Android 14+: background cleanup is unavailable and was left off.' }
-Write-Host 'Setup complete. Test Happ manually once, then enter YouTube and return to Home.'
+Write-Host 'Setup complete. Test Happ manually once, then open a selected Auto VPN app and return to Home.'

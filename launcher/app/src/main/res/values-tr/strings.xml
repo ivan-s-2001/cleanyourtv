@@ -117,9 +117,9 @@
     <string name="automation_service_title">CleanYourTV app automation</string>
     <string name="automation_permission_title">App automation access</string>
     <string name="automation_description">In Android accessibility settings, enable CleanYourTV app automation. It observes activity changes without reading screen contents or remote keys. Both features are optional and off by default.</string>
-    <string name="auto_tunnel_title">Automatic YouTube tunnel</string>
-    <string name="auto_tunnel_state">Automatic YouTube tunnel: %1$s</string>
-    <string name="auto_tunnel_help">Open YouTube or SmartTube: send Connect to Happ. Leave for another app or turn off the screen: send Disconnect. Configure Happ, select a server and allow VPN once manually first. Enable CleanYourTV app automation in accessibility settings. Commands do not wait for the connection to finish; unsupported versions show an error.</string>
+    <string name="auto_tunnel_title">Auto VPN</string>
+    <string name="auto_tunnel_state">Auto VPN: %1$s</string>
+    <string name="auto_tunnel_help">Open a selected app: send Connect to Happ. Leave for an unselected app or turn off the screen: send Disconnect. Configure a server and approve VPN once manually. Choose apps in Apps for Auto VPN and enable the automation service.</string>
     <string name="automation_happ_failed">Happ could not accept the tunnel command. Update Happ, select a server and connect once manually. If the tunnel is still on, disconnect it in Happ.</string>
     <string name="background_cleanup_title">Release background apps after 5 minutes</string>
     <string name="background_cleanup_state">Release background after 5 minutes: %1$s</string>
@@ -129,9 +129,14 @@
     <string name="watch_network_state">Online posters and backdrop: %1$s</string>
     <string name="automation_setup_happ">Set up Happ first: choose a working server and connect manually once.</string>
     <string name="automation_setup_service">Automation service is not connected. Enable CleanYourTV app automation in Android accessibility settings.</string>
-    <string name="automation_setup_switch">Automation service is connected. Turn on Auto VPN for YouTube to start receiving app changes.</string>
-    <string name="automation_setup_ready">Auto VPN is enabled and the automation service is connected. Open YouTube to test the tunnel.</string>
+    <string name="automation_setup_switch">Automation service is connected. Turn on Auto VPN to start receiving app changes.</string>
+    <string name="automation_setup_ready">Auto VPN is enabled and the service is connected. Open a selected app to test the tunnel.</string>
     <string name="automation_permission_help">Enable CleanYourTV app automation in Android accessibility settings. If Android blocks the switch, open App details and allow restricted settings if offered. Return here to see the actual connection status.</string>
     <string name="automation_app_details">App details</string>
     <string name="background_cleanup_unavailable">Background cleanup: unavailable on Android 14+</string>
+    <string name="vpn_apps_title">Apps for Auto VPN</string>
+    <string name="vpn_apps_help">Choose the apps that need the tunnel. Moving between selected apps keeps it connected; leaving them disconnects it. Routing and app exceptions inside Happ are configured separately.</string>
+    <string name="vpn_apps_loading">Loading installed apps…</string>
+    <string name="vpn_apps_reset">YouTube and SmartTube</string>
+    <string name="vpn_apps_empty">Select at least one app for Auto VPN.</string>
 </resources>

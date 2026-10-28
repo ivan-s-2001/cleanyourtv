@@ -41,6 +41,7 @@ public final class LauncherSettingsActivity extends Activity {
     private TextView autoTunnelChoice, backgroundCleanupChoice, automationStatus, networkImagesChoice;
     private final android.os.Handler setupHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private final Runnable updateSetup = this::refresh;
+    private VpnAppsPicker vpnAppsPicker;
     private static final int WATCH_PERMISSION_REQUEST = 84;
     private int columns;
     private int rowsBelowDock;
@@ -82,6 +83,7 @@ public final class LauncherSettingsActivity extends Activity {
             refresh();
         });
         autoTunnelChoice.setOnClickListener(v -> toggleAutomation(AppAutomationService.VPN_KEY));
+        findViewById(R.id.vpnAppsChoice).setOnClickListener(v -> showVpnApps());
         backgroundCleanupChoice.setOnClickListener(v -> toggleAutomation(AppAutomationService.CLEANUP_KEY));
         findViewById(R.id.automationServiceChoice).setOnClickListener(v -> openAutomationPermission());
         View reorderChoice = findViewById(R.id.reorderChoice);
@@ -174,6 +176,7 @@ public final class LauncherSettingsActivity extends Activity {
         followThemeChoice.setOnClickListener(v -> {
             if (!hasOnTvChoices()) return;
             choices.edit().remove("columns").remove(Config.ROWS_BELOW_DOCK_KEY).remove("animations")
+                    .remove("single_row").remove("app_library").remove("library_button")
                     .remove("advanced_effects").remove(Config.WALLPAPER_CHOICE_KEY)
                     .remove(Config.DOCK_OPACITY_KEY).remove(OpenOnStart.KEY).remove(WatchShelf.KEY).commit();
             Config current = Config.load(this);
@@ -326,6 +329,7 @@ public final class LauncherSettingsActivity extends Activity {
         networkImagesChoice.setText(getString(R.string.watch_network_state,
                 getString(choices.getBoolean(ShelfImages.NETWORK_KEY, true) ? R.string.on : R.string.off)));
         int status = !HappControl.supported(this) ? R.string.automation_setup_happ
+                : VpnAppsPicker.selected(this).isEmpty() ? R.string.vpn_apps_empty
                 : !AppAutomationService.bound ? R.string.automation_setup_service
                 : !choices.getBoolean(AppAutomationService.VPN_KEY, false) ? R.string.automation_setup_switch
                 : R.string.automation_setup_ready;
@@ -408,6 +412,11 @@ public final class LauncherSettingsActivity extends Activity {
             Toast.makeText(this, R.string.automation_happ_failed, Toast.LENGTH_LONG).show();
             return;
         }
+        if (vpn && VpnAppsPicker.selected(this).isEmpty()) {
+            Toast.makeText(this, R.string.vpn_apps_empty, Toast.LENGTH_LONG).show();
+            showVpnApps();
+            return;
+        }
         if (!vpn && android.os.Build.VERSION.SDK_INT >= 34) {
             Toast.makeText(this, R.string.background_cleanup_unsupported, Toast.LENGTH_LONG).show();
             return;
@@ -421,6 +430,16 @@ public final class LauncherSettingsActivity extends Activity {
                     openAutomationPermission();
                 })
                 .setNegativeButton(android.R.string.cancel, null).show();
+    }
+
+    private void showVpnApps() {
+        if (vpnAppsPicker == null) vpnAppsPicker = new VpnAppsPicker(this, () -> { changed(); refresh(); });
+        vpnAppsPicker.show();
+    }
+
+    @Override protected void onDestroy() {
+        if (vpnAppsPicker != null) vpnAppsPicker.close();
+        super.onDestroy();
     }
 
     @Override

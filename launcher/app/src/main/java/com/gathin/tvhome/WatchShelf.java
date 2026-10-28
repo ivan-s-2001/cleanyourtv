@@ -3,8 +3,10 @@ package com.gathin.tvhome;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.database.ContentObserver;
 import android.graphics.Color;
+import android.graphics.Outline;
 import android.graphics.Rect;
 import android.graphics.drawable.GradientDrawable;
 import android.media.tv.TvContract;
@@ -15,6 +17,7 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
@@ -28,7 +31,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/** Cinematic poster shelf inspired by rom4ikk1/cleanyourtv-ru; data stays owned by the selected app. */
+/** Published viewing rows using the launcher's own type, tile shapes and glass focus. */
 final class WatchShelf {
     static final String KEY = "watch_shelf";
     private final Activity activity;
@@ -41,12 +44,13 @@ final class WatchShelf {
     private final Handler main = new Handler(Looper.getMainLooper());
     private final Runnable returnToTile, goToTop;
     private final float density;
+    private final Config config;
     private ExecutorService worker;
     private ShelfImages images;
     private CancellationSignal cancellation;
     private String pkg, appLabel = "";
     private volatile int generation;
-    private boolean dirty = true, observing, changingFocus;
+    private boolean dirty = true, observing, changingFocus, compact;
     private int sectionIndex, cardHeight;
     private List<WatchSection> sections = Collections.emptyList();
     private WatchItem described;
@@ -64,20 +68,21 @@ final class WatchShelf {
                 && activity.checkSelfPermission(WatchRepository.PERMISSION) == PackageManager.PERMISSION_GRANTED;
     }
 
-    WatchShelf(Activity activity, FrameLayout root, Runnable returnToTile, Runnable goToTop) {
+    WatchShelf(Activity activity, FrameLayout root, Config config, Runnable returnToTile, Runnable goToTop) {
         this.activity = activity;
         this.root = root;
+        this.config = config;
         this.returnToTile = returnToTile;
         this.goToTop = goToTop;
         density = activity.getResources().getDisplayMetrics().density;
         backdrop = new ImageView(activity);
         backdrop.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        backdrop.setAlpha(0.5f);
+        backdrop.setAlpha(0.22f);
         backdrop.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         backdrop.setVisibility(View.GONE);
         shade = new View(activity);
         shade.setBackground(new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{0xf50a111b, 0xc50a111b, 0x80202b38}));
+                new int[]{tintBackground(238), tintBackground(170), tintBackground(70)}));
         shade.setVisibility(View.GONE);
         shade.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         int below = root.indexOfChild(root.findViewById(R.id.ambient));
@@ -87,45 +92,55 @@ final class WatchShelf {
         panel.setOrientation(LinearLayout.VERTICAL);
         panel.setVisibility(View.GONE);
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-1, dp(216));
-        lp.leftMargin = dp(60);
-        lp.rightMargin = dp(60);
+        // Match heroName and the main shelf, rather than introduce a separate inset/palette.
+        lp.leftMargin = dp(68);
+        lp.rightMargin = dp(68);
         root.addView(panel, lp);
+        panel.setClipChildren(false);
         heading = text(15);
+        heading.setTypeface(UiFont.get(activity, R.string.font_medium));
+        heading.setLetterSpacing(0.02f);
         heading.setSingleLine(true);
         heading.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        heading.setTextColor(0xffd7e2ed);
-        panel.addView(heading, new LinearLayout.LayoutParams(-1, dp(26)));
+        heading.setTextColor(0xb3ffffff);
+        panel.addView(heading, new LinearLayout.LayoutParams(-1, dp(30)));
         body = new LinearLayout(activity);
         body.setOrientation(LinearLayout.HORIZONTAL);
+        body.setClipChildren(false);
         panel.addView(body, new LinearLayout.LayoutParams(-1, 0, 1));
         details = new LinearLayout(activity);
         details.setOrientation(LinearLayout.VERTICAL);
         details.setGravity(Gravity.CENTER_VERTICAL);
         details.setPadding(0, dp(6), dp(28), dp(6));
         body.addView(details, new LinearLayout.LayoutParams(0, -1, 0.37f));
-        title = text(27);
+        title = text(30);
+        title.setTypeface(UiFont.get(activity, R.string.font_light));
+        title.setLetterSpacing(-0.02f);
         title.setMaxLines(2);
         title.setEllipsize(android.text.TextUtils.TruncateAt.END);
         details.addView(title);
         metadata = text(13);
-        metadata.setTextColor(0xffbdd4e9);
+        metadata.setTypeface(UiFont.get(activity, R.string.font_light));
+        metadata.setTextColor(0xb3ffffff);
         metadata.setPadding(0, dp(6), 0, dp(8));
         details.addView(metadata);
         description = text(13);
-        description.setTextColor(0xffc7d0db);
+        description.setTextColor(0x99ffffff);
         description.setMaxLines(4);
         description.setEllipsize(android.text.TextUtils.TruncateAt.END);
         details.addView(description);
         scroll = new HorizontalScrollView(activity);
         scroll.setHorizontalScrollBarEnabled(false);
         scroll.setClipToPadding(false);
-        scroll.setPadding(dp(5), dp(4), dp(5), dp(4));
+        scroll.setClipChildren(false);
+        scroll.setPadding(dp(2), dp(4), dp(10), dp(4));
         row = new LinearLayout(activity);
         row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setClipChildren(false);
         scroll.addView(row);
         body.addView(scroll, new LinearLayout.LayoutParams(0, -1, 0.63f));
-        message = text(15);
-        message.setTextColor(0xffc3c9d0);
+        message = text(14);
+        message.setTextColor(0x99ffffff);
         panel.addView(message);
     }
 
@@ -161,13 +176,20 @@ final class WatchShelf {
         View clock = root.findViewById(R.id.leftBlock);
         clock.getDrawingRect(header);
         root.offsetDescendantRectToMyCoords(clock, header);
-        int height = Math.min(dp(216), Math.max(dp(96), (int) dockTop - header.bottom - dp(22)));
-        cardHeight = Math.max(dp(52), height - dp(38));
+        int room = (int) dockTop - header.bottom - dp(16);
+        if (room < dp(76)) { hide(); return; }
+        int height = Math.min(dp(216), room);
+        boolean wasCompact = compact;
+        int previousCardHeight = cardHeight;
+        compact = height < dp(150);
+        heading.getLayoutParams().height = dp(compact ? 22 : 30);
+        cardHeight = height - dp(compact ? 30 : 38);
         panel.getLayoutParams().height = height;
         panel.requestLayout();
         panel.setY(Math.max(0, dockTop - height - dp(16)));
         details.setVisibility(height < dp(150) ? View.GONE : View.VISIBLE);
         panel.setVisibility(View.VISIBLE);
+        if (!panel.hasFocus()) clearBackdrop();
         appLabel = label;
         if (!packageName.equals(pkg)) {
             generation++;
@@ -183,6 +205,7 @@ final class WatchShelf {
             message.setText(R.string.watch_shelf_loading);
         }
         if (dirty) schedule();
+        else if (!sections.isEmpty() && (compact != wasCompact || cardHeight != previousCardHeight)) render();
     }
 
     void hide() {
@@ -201,6 +224,10 @@ final class WatchShelf {
 
     private void clearPictures() {
         if (images != null) images.cancel();
+        clearBackdrop();
+    }
+
+    private void clearBackdrop() {
         backdrop.setImageDrawable(null);
         backdrop.setVisibility(View.GONE);
         shade.setVisibility(View.GONE);
@@ -275,39 +302,80 @@ final class WatchShelf {
             card.setOrientation(LinearLayout.VERTICAL);
             card.setFocusable(true);
             card.setClickable(true);
-            card.setBackground(background(false));
-            card.setPadding(dp(4), dp(4), dp(4), dp(4));
-            int width = Math.max(dp(64), (cardHeight - dp(28)) * 2 / 3);
+            card.setClipChildren(false);
+            int width = compact ? Math.max(dp(84), Math.round((cardHeight - dp(12)) * 16f / 9f) + dp(12))
+                    : Math.max(dp(64), Math.round((cardHeight - dp(35)) * 2f / 3f) + dp(12));
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(width, cardHeight);
-            lp.rightMargin = dp(12);
+            lp.rightMargin = dp(10);
             row.addView(card, lp);
+            FrameLayout cover = new FrameLayout(activity);
+            cover.setClipChildren(false);
+            card.addView(cover, new LinearLayout.LayoutParams(-1, 0, 1));
             FrameLayout art = new FrameLayout(activity);
-            art.setBackgroundColor(0xff223242);
-            card.addView(art, new LinearLayout.LayoutParams(-1, 0, 1));
+            // Same neutral fill and proportional corners as item_app / AppAdapter.
+            GradientDrawable fill = new GradientDrawable();
+            fill.setColor(0xff1c1c1e);
+            fill.setCornerRadius(AppAdapter.cornerRadius(width - dp(12), density));
+            art.setBackground(fill);
+            art.setOutlineProvider(new ViewOutlineProvider() {
+                @Override public void getOutline(View view, Outline outline) {
+                    outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(),
+                            AppAdapter.cornerRadius(view.getWidth(), density));
+                }
+            });
+            art.setClipToOutline(true);
+            FrameLayout.LayoutParams artLp = new FrameLayout.LayoutParams(-1, -1);
+            artLp.setMargins(dp(6), dp(6), dp(6), dp(6));
+            cover.addView(art, artLp);
             TextView fallback = text(14);
             fallback.setText(item.title);
-            fallback.setMaxLines(4);
+            fallback.setMaxLines(compact ? 2 : 4);
             fallback.setGravity(Gravity.CENTER);
             fallback.setPadding(dp(6), dp(4), dp(6), dp(4));
             art.addView(fallback, new FrameLayout.LayoutParams(-1, -1));
             ImageView poster = new ImageView(activity);
             poster.setScaleType(ImageView.ScaleType.CENTER_CROP);
             art.addView(poster, new FrameLayout.LayoutParams(-1, -1));
+            GlassView focus = new GlassView(activity, null);
+            focus.setStyle(config.glassStyle);
+            focus.setRadius(AppAdapter.cornerRadius(width - dp(12), density));
+            focus.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            focus.setVisibility(View.INVISIBLE);
+            cover.addView(focus, new FrameLayout.LayoutParams(-1, -1));
             TextView caption = text(12);
+            caption.setTypeface(UiFont.get(activity, R.string.font_medium));
+            caption.setLetterSpacing(0.02f);
+            caption.setAlpha(0.6f);
+            caption.setGravity(Gravity.CENTER);
             caption.setText(item.title);
-            caption.setSingleLine(true);
+            caption.setMaxLines(compact ? 2 : 1);
             caption.setEllipsize(android.text.TextUtils.TruncateAt.END);
-            caption.setPadding(dp(2), dp(4), dp(2), 0);
-            card.addView(caption, new LinearLayout.LayoutParams(-1, dp(23)));
+            caption.setPadding(dp(6), dp(3), dp(6), 0);
+            if (compact) {
+                caption.setVisibility(View.GONE);
+                caption.setPadding(dp(4), dp(8), dp(4), dp(4));
+                caption.setBackground(new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                        new int[]{0x00000000, 0xe6000000}));
+                art.addView(caption, new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM));
+            } else card.addView(caption, new LinearLayout.LayoutParams(-1, dp(23)));
             if (item.duration > 0 && item.position > 0) {
                 ProgressBar progress = new ProgressBar(activity, null, android.R.attr.progressBarStyleHorizontal);
                 progress.setMax(100);
                 progress.setProgress(item.progress());
-                card.addView(progress, new LinearLayout.LayoutParams(-1, dp(3)));
+                progress.setProgressTintList(ColorStateList.valueOf(0xccffffff));
+                progress.setProgressBackgroundTintList(ColorStateList.valueOf(0x26ffffff));
+                if (compact) art.addView(progress, new FrameLayout.LayoutParams(-1, dp(2), Gravity.BOTTOM));
+                else card.addView(progress, new LinearLayout.LayoutParams(-1, dp(3)));
             }
             card.setContentDescription(sectionTitle(section) + ": " + item.title + " " + item.episode);
             card.setOnFocusChangeListener((v, focused) -> {
-                card.setBackground(background(focused));
+                focus.setVisibility(focused ? View.VISIBLE : View.INVISIBLE);
+                caption.setAlpha(focused ? 1f : 0.6f);
+                card.animate().cancel();
+                float scale = focused && config.animations && !config.reducedMotion ? 1.05f : 1f;
+                if (config.animations && !config.reducedMotion)
+                    card.animate().scaleX(scale).scaleY(scale).setDuration(160).start();
+                else { card.setScaleX(scale); card.setScaleY(scale); }
                 if (focused) describe(item);
             });
             card.setOnClickListener(v -> open(owner, item.intentUri));
@@ -329,6 +397,7 @@ final class WatchShelf {
             images.load(item.posterUri, false, bitmap -> {
                 poster.setImageBitmap(bitmap);
                 fallback.setVisibility(View.GONE);
+                if (compact) caption.setVisibility(View.VISIBLE);
             });
         }
     }
@@ -351,12 +420,12 @@ final class WatchShelf {
         metadata.setText(meta);
         metadata.setVisibility(meta.isEmpty() ? View.GONE : View.VISIBLE);
         description.setText(item.description);
-        backdrop.setImageDrawable(null);
-        backdrop.setVisibility(View.GONE);
-        shade.setVisibility(View.GONE);
+        clearBackdrop();
+        // App browsing keeps the existing wallpaper/glow. Film art appears only inside the film row.
+        if (!panel.hasFocus()) return;
         String picture = item.backdropUri.isEmpty() ? item.posterUri : item.backdropUri;
         images.load(picture, true, bitmap -> {
-            if (described != item || pkg == null) return;
+            if (described != item || pkg == null || !panel.hasFocus()) return;
             backdrop.setImageBitmap(bitmap);
             backdrop.setVisibility(View.VISIBLE);
             shade.setVisibility(View.VISIBLE);
@@ -379,18 +448,14 @@ final class WatchShelf {
         }
     }
 
-    private GradientDrawable background(boolean focused) {
-        GradientDrawable bg = new GradientDrawable();
-        bg.setColor(focused ? 0xff354e68 : 0xe6172330);
-        bg.setCornerRadius(dp(8));
-        bg.setStroke(dp(focused ? 2 : 1), focused ? Color.WHITE : 0x405e6b78);
-        return bg;
-    }
+    private int tintBackground(int alpha) { return (alpha << 24) | (config.backgroundColor & 0x00ffffff); }
 
     private TextView text(int size) {
         TextView view = new TextView(activity);
         view.setTextColor(Color.WHITE);
         view.setTextSize(size);
+        view.setTypeface(UiFont.get(activity, R.string.font_regular));
+        view.setIncludeFontPadding(false);
         return view;
     }
 

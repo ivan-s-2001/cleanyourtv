@@ -173,9 +173,9 @@
     <string name="automation_service_title">CleanYourTV — автоматика приложений</string>
     <string name="automation_permission_title">Разрешение для автоматики приложений</string>
     <string name="automation_description">В специальных возможностях Android включи «CleanYourTV — автоматика приложений». Служба отслеживает смену приложений, не читая экран и нажатия пульта. Обе функции включаются отдельно и по умолчанию выключены.</string>
-    <string name="auto_tunnel_title">Автоматический туннель YouTube</string>
-    <string name="auto_tunnel_state">Авто-VPN для YouTube: %1$s</string>
-    <string name="auto_tunnel_help">Открываешь YouTube или SmartTube — Happ получает команду включить туннель. Переходишь в другое приложение или выключаешь экран — отключить. Сначала один раз выбери сервер в Happ и подключись вручную, разрешив VPN. Затем включи службу «CleanYourTV — автоматика приложений» в специальных возможностях. Команды не ждут завершения подключения; если версия Happ их не поддерживает, появится ошибка.</string>
+    <string name="auto_tunnel_title">Авто-VPN</string>
+    <string name="auto_tunnel_state">Авто-VPN: %1$s</string>
+    <string name="auto_tunnel_help">При входе в отмеченное приложение включать Happ, при выходе в остальные или выключении экрана — отключать. Сначала выбери сервер в Happ и один раз подключись вручную. Отметь нужные приложения в разделе «Приложения для авто-VPN» и включи службу автоматики.</string>
     <string name="automation_happ_failed">Happ не смог принять команду туннеля. Обнови Happ, выбери сервер и один раз подключись вручную. Если туннель остался включённым, отключи его в Happ.</string>
     <string name="background_cleanup_title">Выгрузка фона через 5 минут</string>
     <string name="background_cleanup_state">Выгрузка фона через 5 минут: %1$s</string>
@@ -185,9 +185,14 @@
     <string name="watch_network_state">Постеры и фон из интернета: %1$s</string>
     <string name="automation_setup_happ">Сначала настрой Happ: выбери рабочий сервер и один раз подключись вручную.</string>
     <string name="automation_setup_service">Служба автоматики не подключена. В специальных возможностях Android включи «CleanYourTV — автоматика приложений».</string>
-    <string name="automation_setup_switch">Служба подключена. Включи «Авто-VPN для YouTube», чтобы она начала отслеживать смену приложений.</string>
-    <string name="automation_setup_ready">Авто-VPN включён, служба подключена. Открой YouTube и проверь состояние туннеля в Happ.</string>
+    <string name="automation_setup_switch">Служба подключена. Включи «Авто-VPN», чтобы она начала отслеживать смену приложений.</string>
+    <string name="automation_setup_ready">Авто-VPN включён, служба подключена. Открой отмеченное приложение и проверь состояние туннеля в Happ.</string>
     <string name="automation_permission_help">В специальных возможностях Android включи «CleanYourTV — автоматика приложений». Если переключатель заблокирован, открой карточку приложения и разреши ограниченные настройки, если такой пункт доступен. Вернись сюда для проверки подключения службы.</string>
     <string name="automation_app_details">Карточка приложения</string>
     <string name="background_cleanup_unavailable">Выгрузка фона: недоступна на Android 14 и новее</string>
+    <string name="vpn_apps_title">Приложения для авто-VPN</string>
+    <string name="vpn_apps_help">Отметь приложения, которым нужен туннель. Между отмеченными приложениями VPN остаётся включённым, при выходе в остальные — отключается. Маршрутизация и исключения приложений в самом Happ настраиваются отдельно.</string>
+    <string name="vpn_apps_loading">Загружаем установленные приложения…</string>
+    <string name="vpn_apps_reset">YouTube и SmartTube</string>
+    <string name="vpn_apps_empty">Выбери хотя бы одно приложение для авто-VPN.</string>
 </resources>

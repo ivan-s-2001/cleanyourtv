@@ -641,7 +641,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
         adapter = new AppAdapter(this, this, COLUMNS, cfg);
         if (cfg.dockRow && WatchShelf.enabled(this)) {
-            watchShelf = new WatchShelf(this, root, () -> focusTile(lastFocused),
+            watchShelf = new WatchShelf(this, root, cfg, () -> focusTile(lastFocused),
                     () -> firstTopButton().requestFocus());
         }
         dockApps = cfg.dockApps;
@@ -663,9 +663,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             int gridRows = itemH * rowsBelowDock;
             // Keep the hero below the header when the library is enabled on a short screen,
             // even when the theme requests an extra visible row below the dock.
-            int shelfClearance = watchShelf != null ? Math.min((int) (260 * density),
-                    Math.max((int) (140 * density), h - dockRow - (int) (16 * density)))
-                    : cfg.appLibrary ? hero.getMeasuredHeight() + (int) (40 * density) : 0;
+            // Viewing widgets use the space above the dock; they must not push the app grid off-screen.
+            int shelfClearance = cfg.appLibrary ? hero.getMeasuredHeight() + (int) (40 * density) : 0;
             int want = Math.max(shelfClearance, h - dockRow - gridRows - (int) (AppAdapter.BOTTOM_ROOM_DP * density));
             // Where the rows cannot fit even at the smallest tile (3 rows with the title on), the title keeps its
             // room above the dock and the last rows run off the bottom instead of the title drawing over the clock.

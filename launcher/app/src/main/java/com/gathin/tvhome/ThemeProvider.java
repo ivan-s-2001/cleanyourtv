@@ -51,6 +51,11 @@ public class ThemeProvider extends ContentProvider {
             answer.putString("error", "Install and configure a supported Happ app first");
             return answer;
         }
+        if (extras != null && extras.getBoolean(AppAutomationService.VPN_KEY, false)
+                && VpnAppsPicker.selected(context).isEmpty()) {
+            answer.putString("error", "Select apps for Auto VPN in Launcher settings first");
+            return answer;
+        }
         if (extras != null && extras.getBoolean(AppAutomationService.CLEANUP_KEY, false)
                 && android.os.Build.VERSION.SDK_INT >= 34) {
             answer.putString("error", "Background cleanup is unavailable on Android 14+");
