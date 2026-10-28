@@ -9,11 +9,18 @@ import java.util.Set;
 /** A published TV recommendation, not a record read from another app's private storage. */
 final class WatchItem {
     final String title, episode, intentUri, posterUri, channel;
+    final String description, metadata, backdropUri;
     final int type;
     final long engaged, position, duration, weight;
 
     WatchItem(String title, String episode, String intentUri, String posterUri, String channel,
               int type, long engaged, long position, long duration, long weight) {
+        this(title, episode, intentUri, posterUri, channel, type, engaged, position, duration, weight, "", "", "");
+    }
+
+    WatchItem(String title, String episode, String intentUri, String posterUri, String channel,
+              int type, long engaged, long position, long duration, long weight,
+              String description, String metadata, String backdropUri) {
         this.title = title;
         this.episode = episode;
         this.intentUri = intentUri;
@@ -24,6 +31,9 @@ final class WatchItem {
         this.position = position;
         this.duration = duration;
         this.weight = weight;
+        this.description = description;
+        this.metadata = metadata;
+        this.backdropUri = backdropUri;
     }
 
     int progress() {

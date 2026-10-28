@@ -63,9 +63,10 @@ The launcher's own page has these rows, top to bottom:
   time Home comes up after the TV starts. Once per boot, so Home and Back still reach the launcher.
 - **Follow theme (reset on-TV choices)**, which clears the on-TV appearance choices, including the history shelf. Pushing or resetting a theme
   clears them too.
-- **History above favourites** (personal fork, off by default): public Continue watching and preview
+- **History above favourites** (personal fork, available after permission is granted): public Continue watching and preview
   cards for the focused favourite. Requires the TV listings permission; Up enters cards, OK opens the
   programme, Down or Back returns. Only data published by the app is visible.
+- **Online posters and backdrop** (personal fork): load the visible shelf pictures from the publishing app. Turn it off for text cards and local pictures only.
 - **Happ: YouTube routing profile** (personal fork): imports an optional YouTube-only routing profile into Happ.
   Reconnect Happ after activating it for the subscription; other traffic goes directly. The tunnel stays
   connected. See the [setup and limitations](favorites-history-happ.ru.md).
@@ -76,7 +77,7 @@ The launcher's own page has these rows, top to bottom:
   of each ordinary app's background processes five minutes after leaving it. Returning cancels its timer.
   System packages and essential helpers are excluded; preinstalled YouTube is included. This does not force-stop
   apps or remove recent tasks and is not a system performance guarantee. Android 14+ does not permit it.
-- **App automation access** opens Android accessibility settings to enable **CleanYourTV app automation**.
+- **App automation access** offers Android accessibility settings and the app details page for restricted settings. The setup status distinguishes a connected service from a saved switch. Enable **CleanYourTV app automation**.
   The service reads activity changes only, without window contents, gestures or key filtering. It performs
   no polling, and subscribes to no window events while both features are off.
 - **Choose default home** opens Android's home picker, and **TV system settings** the TV's own settings

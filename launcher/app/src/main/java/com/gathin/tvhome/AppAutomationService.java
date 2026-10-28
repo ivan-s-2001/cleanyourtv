@@ -29,6 +29,8 @@ import java.util.Set;
 public final class AppAutomationService extends AccessibilityService {
     static final String VPN_KEY = "youtube_auto_tunnel";
     static final String CLEANUP_KEY = "background_cleanup_5min";
+    /** Actual same-process service connection, distinct from a saved setting. */
+    static volatile boolean bound;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private SharedPreferences prefs;
     private AppAutomationPolicy policy;
@@ -51,6 +53,7 @@ public final class AppAutomationService extends AccessibilityService {
     @Override protected void onServiceConnected() {
         super.onServiceConnected();
         connected = true;
+        bound = true;
         youtubeApps = new HashSet<>(Arrays.asList(getResources().getStringArray(R.array.youtube_vpn_apps)));
         policy = new AppAutomationPolicy(youtubeApps);
         prefs = getSharedPreferences(Config.SETTINGS_NAME, MODE_PRIVATE);
@@ -174,6 +177,7 @@ public final class AppAutomationService extends AccessibilityService {
 
     private void stopAutomation() {
         connected = autoVpn = cleanup = false;
+        bound = false;
         handler.removeCallbacksAndMessages(null);
         if (policy != null) {
             sendVpnCommand(policy.vpnCommand(false));

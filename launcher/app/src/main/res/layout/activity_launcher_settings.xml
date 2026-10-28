@@ -151,6 +151,11 @@
             android:text="@string/happ_youtube_title" />
 
         <TextView
+            android:id="@+id/networkImagesChoice"
+            style="@style/SettingsRow"
+            android:layout_marginTop="18dp" />
+
+        <TextView
             android:id="@+id/autoTunnelChoice"
             style="@style/SettingsRow"
             android:layout_marginTop="18dp" />
@@ -165,6 +170,14 @@
             style="@style/SettingsRow"
             android:layout_marginTop="18dp"
             android:text="@string/automation_permission_title" />
+
+        <TextView
+            android:id="@+id/automationStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textColor="#FFC5DCF2"
+            android:textSize="16sp" />
 
         <TextView
             android:layout_width="match_parent"

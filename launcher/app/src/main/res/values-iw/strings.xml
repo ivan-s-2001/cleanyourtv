@@ -155,7 +155,7 @@
     <string name="watch_shelf_loading">Loading published programmes…</string>
     <string name="watch_shelf_empty">This app has not shared viewing history or recommendations with Android TV.</string>
     <string name="watch_shelf_unavailable">Android TV could not provide programmes. Check the TV listings permission.</string>
-    <string name="watch_shelf_help">Show the focused favourite’s Continue watching and preview channels. Only data shared by the app with Android TV is available. Allow access to TV listings. Press Up for cards, OK to watch, Down or Back to return. Online posters are shown as title cards.</string>
+    <string name="watch_shelf_help">Published Continue watching, new episodes and channels for the selected favourite. Up changes rows, OK opens the item, Down or Back returns. Posters and descriptions come from that app. Turn off online posters to use text cards without network images.</string>
     <string name="watch_shelf_needs_dock">Enable the favourites row (dock_row) in the theme first.</string>
     <string name="watch_shelf_permission_denied">TV listings access was not granted. History remains off; enable it again to retry.</string>
     <string name="watch_shelf_open_failed">The app could not open this programme. Open it from its favourite tile.</string>
@@ -179,4 +179,13 @@
     <string name="background_cleanup_state">Release background after 5 minutes: %1$s</string>
     <string name="background_cleanup_help">On Android 8–13, request release of each ordinary app’s background processes 5 minutes after leaving it. Returning cancels its timer. System packages, keyboards, VPNs and launchers are excluded; preinstalled YouTube is included. This is not a force stop or removal from Recents: Android may refuse or restart processes. Closing cached apps can slow later launches. Enable CleanYourTV app automation in accessibility settings.</string>
     <string name="background_cleanup_unsupported">Android 14 and later do not let apps release other apps’ background processes.</string>
+    <string name="watch_section_nav">%1$s · %2$d/%3$d ↑</string>
+    <string name="watch_network_state">Online posters and backdrop: %1$s</string>
+    <string name="automation_setup_happ">Set up Happ first: choose a working server and connect manually once.</string>
+    <string name="automation_setup_service">Automation service is not connected. Enable CleanYourTV app automation in Android accessibility settings.</string>
+    <string name="automation_setup_switch">Automation service is connected. Turn on Auto VPN for YouTube to start receiving app changes.</string>
+    <string name="automation_setup_ready">Auto VPN is enabled and the automation service is connected. Open YouTube to test the tunnel.</string>
+    <string name="automation_permission_help">Enable CleanYourTV app automation in Android accessibility settings. If Android blocks the switch, open App details and allow restricted settings if offered. Return here to see the actual connection status.</string>
+    <string name="automation_app_details">App details</string>
+    <string name="background_cleanup_unavailable">Background cleanup: unavailable on Android 14+</string>
 </resources>

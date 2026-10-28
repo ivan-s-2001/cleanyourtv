@@ -5,6 +5,10 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
+import android.os.Bundle;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -20,6 +24,55 @@ import java.io.FileNotFoundException;
  *   content delete --uri content://com.gathin.tvhome.theme/wallpapers      (every image in the collection)
  */
 public class ThemeProvider extends ContentProvider {
+
+    /** Explicit shell setup for the personal fork; it cannot grant any Android/system permission. */
+    @Override public Bundle call(String method, String arg, Bundle extras) {
+        if (!"configure_features".equals(method)) return super.call(method, arg, extras);
+        Context context = getContext();
+        // ContentProvider.call has no URI permission enforcement: check the caller before reading/writing prefs.
+        context.enforceCallingPermission("android.permission.WRITE_SECURE_SETTINGS", "Shell setup only");
+        Bundle answer = new Bundle();
+        String[] keys = {WatchShelf.KEY, ShelfImages.NETWORK_KEY,
+                AppAutomationService.VPN_KEY, AppAutomationService.CLEANUP_KEY};
+        java.util.Set<String> allowed = new java.util.HashSet<>(java.util.Arrays.asList(keys));
+        if (extras != null) for (String key : extras.keySet()) {
+            if (!allowed.contains(key) || !(extras.get(key) instanceof Boolean)) {
+                answer.putString("error", "Only the four boolean feature flags are accepted");
+                return answer;
+            }
+        }
+        if (extras != null && extras.getBoolean(WatchShelf.KEY, false)
+                && context.checkSelfPermission(WatchRepository.PERMISSION) != PackageManager.PERMISSION_GRANTED) {
+            answer.putString("error", "Grant READ_TV_LISTINGS first");
+            return answer;
+        }
+        if (extras != null && extras.getBoolean(AppAutomationService.VPN_KEY, false)
+                && !HappControl.supported(context)) {
+            answer.putString("error", "Install and configure a supported Happ app first");
+            return answer;
+        }
+        if (extras != null && extras.getBoolean(AppAutomationService.CLEANUP_KEY, false)
+                && android.os.Build.VERSION.SDK_INT >= 34) {
+            answer.putString("error", "Background cleanup is unavailable on Android 14+");
+            return answer;
+        }
+        SharedPreferences prefs = context.getSharedPreferences(Config.SETTINGS_NAME, Context.MODE_PRIVATE);
+        if (extras != null && !extras.isEmpty()) {
+            SharedPreferences.Editor edit = prefs.edit();
+            for (String key : keys) if (extras.containsKey(key)) edit.putBoolean(key, extras.getBoolean(key));
+            edit.putLong(Config.SETTINGS_REVISION_KEY, prefs.getLong(Config.SETTINGS_REVISION_KEY, 0) + 1);
+            if (!edit.commit()) {
+                answer.putString("error", "Could not save feature settings");
+                return answer;
+            }
+        }
+        answer.putBoolean("configured", true);
+        answer.putBoolean("happ_supported", HappControl.supported(context));
+        answer.putBoolean("service_bound", AppAutomationService.bound);
+        for (String key : keys) answer.putBoolean(key,
+                prefs.getBoolean(key, key.equals(WatchShelf.KEY) || key.equals(ShelfImages.NETWORK_KEY)));
+        return answer;
+    }
 
     private File file(Uri uri) throws FileNotFoundException {
         String path = ThemeFiles.path(uri.getPathSegments());

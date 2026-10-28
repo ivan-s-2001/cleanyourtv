@@ -38,7 +38,9 @@ public final class LauncherSettingsActivity extends Activity {
     private TextView followThemeChoice;
     private TextView openOnStartChoice;
     private TextView watchShelfChoice;
-    private TextView autoTunnelChoice, backgroundCleanupChoice;
+    private TextView autoTunnelChoice, backgroundCleanupChoice, automationStatus, networkImagesChoice;
+    private final android.os.Handler setupHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable updateSetup = this::refresh;
     private static final int WATCH_PERMISSION_REQUEST = 84;
     private int columns;
     private int rowsBelowDock;
@@ -56,7 +58,7 @@ public final class LauncherSettingsActivity extends Activity {
         watchShelfChoice.setOnClickListener(v -> {
             if (!config.dockRow) {
                 Toast.makeText(this, R.string.watch_shelf_needs_dock, Toast.LENGTH_LONG).show();
-            } else if (choices.getBoolean(WatchShelf.KEY, false)) {
+            } else if (WatchShelf.enabled(this)) {
                 setWatchShelf(false);
             } else if (checkSelfPermission(WatchRepository.PERMISSION) == PackageManager.PERMISSION_GRANTED) {
                 setWatchShelf(true);
@@ -71,6 +73,14 @@ public final class LauncherSettingsActivity extends Activity {
         findViewById(R.id.happYoutubeChoice).setOnClickListener(v -> HappSetup.show(this));
         autoTunnelChoice = findViewById(R.id.autoTunnelChoice);
         backgroundCleanupChoice = findViewById(R.id.backgroundCleanupChoice);
+        automationStatus = findViewById(R.id.automationStatus);
+        networkImagesChoice = findViewById(R.id.networkImagesChoice);
+        networkImagesChoice.setOnClickListener(v -> {
+            choices.edit().putBoolean(ShelfImages.NETWORK_KEY,
+                    !choices.getBoolean(ShelfImages.NETWORK_KEY, true)).apply();
+            changed();
+            refresh();
+        });
         autoTunnelChoice.setOnClickListener(v -> toggleAutomation(AppAutomationService.VPN_KEY));
         backgroundCleanupChoice.setOnClickListener(v -> toggleAutomation(AppAutomationService.CLEANUP_KEY));
         findViewById(R.id.automationServiceChoice).setOnClickListener(v -> openAutomationPermission());
@@ -302,12 +312,24 @@ public final class LauncherSettingsActivity extends Activity {
     }
 
     private void refresh() {
+        if (autoTunnelChoice == null || choices == null) return;
         autoTunnelChoice.setText(getString(R.string.auto_tunnel_state,
                 getString(choices.getBoolean(AppAutomationService.VPN_KEY, false) ? R.string.on : R.string.off)));
-        backgroundCleanupChoice.setText(getString(R.string.background_cleanup_state,
-                getString(choices.getBoolean(AppAutomationService.CLEANUP_KEY, false) ? R.string.on : R.string.off)));
+        boolean canClean = android.os.Build.VERSION.SDK_INT < 34;
+        backgroundCleanupChoice.setEnabled(canClean);
+        backgroundCleanupChoice.setAlpha(canClean ? 1f : 0.5f);
+        backgroundCleanupChoice.setText(canClean ? getString(R.string.background_cleanup_state,
+                getString(choices.getBoolean(AppAutomationService.CLEANUP_KEY, false) ? R.string.on : R.string.off))
+                : getString(R.string.background_cleanup_unavailable));
         watchShelfChoice.setText(getString(R.string.watch_shelf_state,
-                getString(choices.getBoolean(WatchShelf.KEY, false) ? R.string.on : R.string.off)));
+                getString(WatchShelf.enabled(this) ? R.string.on : R.string.off)));
+        networkImagesChoice.setText(getString(R.string.watch_network_state,
+                getString(choices.getBoolean(ShelfImages.NETWORK_KEY, true) ? R.string.on : R.string.off)));
+        int status = !HappControl.supported(this) ? R.string.automation_setup_happ
+                : !AppAutomationService.bound ? R.string.automation_setup_service
+                : !choices.getBoolean(AppAutomationService.VPN_KEY, false) ? R.string.automation_setup_switch
+                : R.string.automation_setup_ready;
+        automationStatus.setText(status);
         for (int i = 0; i < columnChoices.length; i++) {
             columnChoices[i].setSelected(columns == i + 4);
         }
@@ -354,7 +376,25 @@ public final class LauncherSettingsActivity extends Activity {
     }
 
     private void openAutomationPermission() {
-        open(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+        new AlertDialog.Builder(this).setTitle(R.string.automation_permission_title)
+                .setMessage(R.string.automation_permission_help)
+                .setPositiveButton(R.string.tv_settings, (dialog, which) ->
+                        open(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)))
+                .setNeutralButton(R.string.automation_app_details, (dialog, which) ->
+                        open(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                android.net.Uri.parse("package:" + getPackageName()))))
+                .setNegativeButton(android.R.string.cancel, null).show();
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        refresh();
+        setupHandler.postDelayed(updateSetup, 700);
+    }
+
+    @Override protected void onPause() {
+        setupHandler.removeCallbacksAndMessages(null);
+        super.onPause();
     }
 
     private void toggleAutomation(String key) {

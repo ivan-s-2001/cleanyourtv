@@ -8,6 +8,8 @@
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Personal fork: published posters only while the visible shelf requests them. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <!-- Personal fork: opt-in public Continue watching / preview rows. Granted only from Launcher settings. -->
     <uses-permission android:name="android.permission.READ_TV_LISTINGS" />
@@ -81,6 +83,7 @@
     </queries>
 
     <application
+        android:usesCleartextTraffic="true"
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:banner="@drawable/banner"

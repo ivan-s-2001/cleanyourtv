@@ -53,7 +53,8 @@ final class WatchRepository {
                             table == 0 ? "" : channels.getOrDefault(number(c, "channel_id"), ""),
                             table == 0 ? (int) number(c, "watch_next_type") : position > 0 ? 0 : 4,
                             number(c, "last_engagement_time_utc_millis"), position,
-                            number(c, "duration_millis"), number(c, "weight")));
+                            number(c, "duration_millis"), number(c, "weight"),
+                            description(c), metadata(c), text(c, "thumbnail_uri")));
                 }
             } catch (OperationCanceledException e) {
                 throw e;
@@ -70,7 +71,21 @@ final class WatchRepository {
 
     private static String text(Cursor c, String key) {
         int i = c.getColumnIndex(key);
-        return i < 0 || c.isNull(i) ? "" : c.getString(i);
+        String value = i < 0 || c.isNull(i) ? "" : c.getString(i);
+        return value == null ? "" : value.substring(0, Math.min(value.length(), 4096));
+    }
+
+    private static String description(Cursor c) {
+        String shortText = text(c, "short_description");
+        return shortText.isEmpty() ? text(c, "long_description") : shortText;
+    }
+
+    private static String metadata(Cursor c) {
+        String date = text(c, "release_date");
+        String year = date.matches("[0-9]{4}.*") ? date.substring(0, 4) : "";
+        String rating = text(c, "review_rating");
+        // Preserve the provider's score. Do not invent a scale or label it as Kinopoisk.
+        return year + (year.isEmpty() || rating.isEmpty() ? "" : " · ") + rating;
     }
 
     private static long number(Cursor c, String key) {

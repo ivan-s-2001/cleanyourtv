@@ -640,8 +640,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                     AnimationUtils.loadAnimation(this, R.anim.tile_enter), 0.06f));
         }
         adapter = new AppAdapter(this, this, COLUMNS, cfg);
-        if (cfg.dockRow && getSharedPreferences(Config.SETTINGS_NAME, MODE_PRIVATE).getBoolean(WatchShelf.KEY, false)
-                && checkSelfPermission(WatchRepository.PERMISSION) == PackageManager.PERMISSION_GRANTED) {
+        if (cfg.dockRow && WatchShelf.enabled(this)) {
             watchShelf = new WatchShelf(this, root, () -> focusTile(lastFocused),
                     () -> firstTopButton().requestFocus());
         }
@@ -664,7 +663,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             int gridRows = itemH * rowsBelowDock;
             // Keep the hero below the header when the library is enabled on a short screen,
             // even when the theme requests an extra visible row below the dock.
-            int shelfClearance = watchShelf != null ? (int) (220 * density)
+            int shelfClearance = watchShelf != null ? Math.min((int) (260 * density),
+                    Math.max((int) (140 * density), h - dockRow - (int) (16 * density)))
                     : cfg.appLibrary ? hero.getMeasuredHeight() + (int) (40 * density) : 0;
             int want = Math.max(shelfClearance, h - dockRow - gridRows - (int) (AppAdapter.BOTTOM_ROOM_DP * density));
             // Where the rows cannot fit even at the smallest tile (3 rows with the title on), the title keeps its
@@ -879,7 +879,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         getWindow().getDecorView().getViewTreeObserver().addOnGlobalFocusChangeListener((oldF, newF) -> {
             boolean onTile = newF != null && newF.getId() == R.id.card;
             if (!onTile) hideGlass();
-            if (watchShelf != null && !onTile && !watchShelf.contains(newF)) watchShelf.hide();
+            if (watchShelf != null && !watchShelf.managesFocus() && !onTile && !watchShelf.contains(newF)) watchShelf.hide();
         });
 
         packageFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
