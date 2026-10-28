@@ -280,7 +280,7 @@
     <bool name="top_menu">false</bool>
     <!-- A direct Launcher settings action instead of TV Settings in the header (or top_menu).
          Off by default; a theme can set "launcher_settings_button": true. -->
-    <bool name="launcher_settings_button">false</bool>
+    <bool name="launcher_settings_button">true</bool>
     <!-- The dock band as light frosted glass, like the Inputs, Wi-Fi and Settings pills, so a sky or wallpaper shows
          through it. false (the default) keeps the solid near-black band, or the cinematic shelf's dark glass. Can
          also be set with "dock_glass": true in a theme's config.json. -->
@@ -364,7 +364,7 @@
 
     <!-- Grid rows left visible under the dock on the home screen. 0 = dock sits at the very bottom. Tiles shrink if
          the dock, its title and this many rows would not otherwise fit the screen height. -->
-    <integer name="rows_below_dock">0</integer>
+    <integer name="rows_below_dock">1</integer>
 
     <!-- The focused dock app's name in large type above the dock. false keeps only the glow, which leaves room
          for bigger tiles when rows_below_dock is 2 or 3. -->

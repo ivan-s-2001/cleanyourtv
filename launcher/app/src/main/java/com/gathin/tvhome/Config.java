@@ -629,6 +629,17 @@ final class Config {
         SharedPreferences choices = ctx.getSharedPreferences(SETTINGS_NAME, Context.MODE_PRIVATE);
         // Unmounted storage looks like a theme reset; compare only once the file is readable.
         if (mounted) syncThemeChoices(choices, dir, file);
+        // Personal 3.3 upgrade: restore the owner's requested dock + app grid, including older theme overlays.
+        // Only layout keys change. Favourites, app ordering, wallpaper, viewing and VPN choices survive.
+        if (!choices.getBoolean("classic_home_restored_v1", false)) {
+            choices.edit().putBoolean("single_row", false).putBoolean("app_library", false)
+                    .putBoolean("library_button", false)
+                    .putInt(ROWS_BELOW_DOCK_KEY, Math.max(1, choices.getInt(ROWS_BELOW_DOCK_KEY, rowsBelow)))
+                    .putBoolean("classic_home_restored_v1", true).apply();
+        }
+        singleRow = choices.getBoolean("single_row", singleRow);
+        library = choices.getBoolean("app_library", library);
+        libraryButton = choices.getBoolean("library_button", libraryButton);
         int chosenColumns = choices.getInt("columns", columns);
         if (chosenColumns >= 4 && chosenColumns <= 7) columns = chosenColumns;
         int chosenRows = choices.getInt(ROWS_BELOW_DOCK_KEY, rowsBelow);
@@ -725,11 +736,13 @@ final class Config {
             // explicit theme push or reset by the updated tools.
             SharedPreferences.Editor editor = choices.edit();
             if (!"absent".equals(token)) editor.remove("columns").remove("animations")
+                    .remove("single_row").remove("app_library").remove("library_button")
                     .remove("advanced_effects").remove(ROWS_BELOW_DOCK_KEY).remove(WALLPAPER_CHOICE_KEY)
                     .remove(DOCK_OPACITY_KEY);
             editor.putString(THEME_SIGNATURE_KEY, signature).commit();
         } else if (!seen.equals(signature)) {
             choices.edit().remove("columns").remove("animations").remove("advanced_effects")
+                    .remove("single_row").remove("app_library").remove("library_button")
                     .remove(ROWS_BELOW_DOCK_KEY).remove(WALLPAPER_CHOICE_KEY).remove(DOCK_OPACITY_KEY)
                     .putString(THEME_SIGNATURE_KEY, signature).commit();
         }

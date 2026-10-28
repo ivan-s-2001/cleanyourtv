@@ -1,3 +1,9 @@
+Персональная русская сборка: [сетка под доком, виджеты просмотра, авто-VPN для выбранных приложений и настройка через ADB](docs/favorites-history-happ.ru.md).
+
+Идеи интерфейса изучены в [rom4ikk1/cleanyourtv-ru v2.0-ru](https://github.com/rom4ikk1/cleanyourtv-ru/tree/v2.0-ru). Данные рядов остаются данными выбранного приложения; каталоги другого сервиса не выдаются за его историю.
+
+[Связка с PlayStation 5: HDMI-CEC, игровой режим и Remote Play](docs/ps5-integration.ru.md).
+
 <p align="center">
   <a href="https://cleanyour.tv"><img src="https://raw.githubusercontent.com/Gathin23/cleanyourtv/main/docs/banner.png" alt="CleanYourTV. Your TV, minus the ads. Strip the bloatware from any Android TV or Google TV over Wi-Fi and replace the ad-filled home screen with a clean launcher that looks like an Apple TV. No root, no cable, nothing uninstalled, and a one-line restore." width="800"></a>
 </p>

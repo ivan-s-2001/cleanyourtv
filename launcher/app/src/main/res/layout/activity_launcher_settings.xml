@@ -132,6 +132,76 @@
             android:textSize="14sp" />
 
         <TextView
+            android:id="@+id/watchShelfChoice"
+            style="@style/SettingsRow"
+            android:layout_marginTop="18dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7dp"
+            android:text="@string/watch_shelf_help"
+            android:textColor="#FFACB8C1"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/happYoutubeChoice"
+            style="@style/SettingsRow"
+            android:layout_marginTop="18dp"
+            android:text="@string/happ_youtube_title" />
+
+        <TextView
+            android:id="@+id/networkImagesChoice"
+            style="@style/SettingsRow"
+            android:layout_marginTop="18dp" />
+
+        <TextView
+            android:id="@+id/autoTunnelChoice"
+            style="@style/SettingsRow"
+            android:layout_marginTop="18dp" />
+
+        <TextView
+            android:id="@+id/backgroundCleanupChoice"
+            style="@style/SettingsRow"
+            android:layout_marginTop="18dp" />
+
+        <TextView
+            android:id="@+id/vpnAppsChoice"
+            style="@style/SettingsRow"
+            android:layout_marginTop="18dp"
+            android:text="@string/vpn_apps_title" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7dp"
+            android:textColor="#FFACB8C1"
+            android:textSize="14sp"
+            android:text="@string/vpn_apps_help" />
+
+        <TextView
+            android:id="@+id/automationServiceChoice"
+            style="@style/SettingsRow"
+            android:layout_marginTop="18dp"
+            android:text="@string/automation_permission_title" />
+
+        <TextView
+            android:id="@+id/automationStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textColor="#FFC5DCF2"
+            android:textSize="16sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7dp"
+            android:text="@string/automation_description"
+            android:textColor="#FFACB8C1"
+            android:textSize="14sp" />
+
+        <TextView
             android:id="@+id/defaultHomeChoice"
             style="@style/SettingsRow"
             android:layout_marginTop="28dp"

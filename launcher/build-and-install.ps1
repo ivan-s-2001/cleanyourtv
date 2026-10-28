@@ -1,5 +1,5 @@
 # Windows version of build-and-install.sh: build the launcher APK and install it on the TV as the
-# default home screen. Uses Android Studio's bundled JDK and the default SDK location unless
+# default home screen. Uses a full JDK 17 and the default SDK location unless
 # JAVA_HOME / ANDROID_HOME are set.
 #
 # Usage: launcher\build-and-install.ps1 -TvHost 192.168.1.50 [-StockLauncher <package>|none]
@@ -22,18 +22,23 @@ if (-not $TvHost) { throw 'pass -TvHost <tv ip> or set $env:TV_HOST' }
 $env:TV_HOST = $TvHost
 Set-Location $PSScriptRoot
 
-if (-not $env:JAVA_HOME -or -not (Test-Path "$env:JAVA_HOME\bin\java.exe")) {
-    $jbr = Get-ChildItem 'C:\Program Files\Android' -Directory -ErrorAction SilentlyContinue |
-        ForEach-Object { Join-Path $_.FullName 'jbr' } | Where-Object { Test-Path "$_\bin\java.exe" } | Select-Object -First 1
-    if (-not $jbr) { throw 'Set JAVA_HOME to a JDK 17+ (Android Studio ships one in its jbr folder)' }
-    $env:JAVA_HOME = $jbr
-}
+$jdkCandidates = @($env:JAVA_HOME)
+$jdkCandidates += @(Get-ChildItem "$env:LOCALAPPDATA\CleanYourTV\toolchain\temurin17" -Directory -ErrorAction SilentlyContinue |
+    ForEach-Object { $_.FullName })
+$jdkCandidates += @(Get-ChildItem 'C:\Program Files\Android' -Directory -ErrorAction SilentlyContinue |
+    ForEach-Object { Join-Path $_.FullName 'jbr' })
+$jdk17 = $jdkCandidates | Where-Object {
+    $_ -and (Test-Path "$_\bin\javac.exe") -and (Test-Path "$_\bin\jlink.exe") -and
+    (Test-Path "$_\release") -and (Select-String -Path "$_\release" -Pattern '^JAVA_VERSION="17\.')
+} | Select-Object -First 1
+if (-not $jdk17) { throw 'A full JDK 17 is required. Set JAVA_HOME to its folder; Java 25 is incompatible with this Gradle version.' }
+$env:JAVA_HOME = $jdk17
 $sdk = if ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { "$env:LOCALAPPDATA\Android\Sdk" }
 if (-not (Test-Path local.properties)) {
     "sdk.dir=$($sdk -replace '\\', '\\')" | Out-File -Encoding ascii local.properties
 }
 
-.\gradlew.bat assembleRelease -q --console=plain
+.\gradlew.bat "-Dorg.gradle.java.home=$env:JAVA_HOME" --no-daemon assembleRelease -q --console=plain
 if ($LASTEXITCODE -ne 0) { throw 'Gradle build failed' }
 
 $py = '..\tools\venv\Scripts\python.exe'
