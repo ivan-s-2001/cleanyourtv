@@ -154,4 +154,23 @@
     <string name="last_opened">Last opened %1$s</string>
     <!-- game_day: a game on now, in the race panel. -->
     <string name="game_live">Live now</string>
+    <string name="watch_shelf_title">History above favourites</string>
+    <string name="watch_shelf_state">History above favourites: %1$s</string>
+    <string name="watch_shelf_heading">%1$s · Continue watching and new releases</string>
+    <string name="watch_shelf_loading">Loading published programmes…</string>
+    <string name="watch_shelf_empty">This app has not shared viewing history or recommendations with Android TV.</string>
+    <string name="watch_shelf_unavailable">Android TV could not provide programmes. Check the TV listings permission.</string>
+    <string name="watch_shelf_help">Show the focused favourite’s Continue watching and preview channels. Only data shared by the app with Android TV is available. Allow access to TV listings. Press Up for cards, OK to watch, Down or Back to return. Online posters are shown as title cards.</string>
+    <string name="watch_shelf_needs_dock">Enable the favourites row (dock_row) in the theme first.</string>
+    <string name="watch_shelf_permission_denied">TV listings access was not granted. History remains off; enable it again to retry.</string>
+    <string name="watch_shelf_open_failed">The app could not open this programme. Open it from its favourite tile.</string>
+    <string name="watch_continue">Continue watching</string>
+    <string name="watch_next">Next episode</string>
+    <string name="watch_new">New release</string>
+    <string name="watch_list">Watchlist</string>
+    <string name="watch_recommended">Recommendations</string>
+    <string name="happ_youtube_title">Happ: VPN only for YouTube</string>
+    <string name="happ_youtube_help">Import and activate “CleanYourTV - YouTube only” in Happ for your subscription, then reconnect Happ. YouTube domains use the VPN server; all other traffic connects directly. Happ stays connected. Your existing server subscription is required. Provider-locked JSON subscriptions cannot import a routing profile; use Happ Settings → Proxy for selected apps → On and select only YouTube (or SmartTube).</string>
+    <string name="happ_youtube_import">Import into Happ</string>
+    <string name="happ_youtube_missing">Happ could not open the profile. Install or update Happ, or select only YouTube in its per-app proxy settings.</string>
 </resources>

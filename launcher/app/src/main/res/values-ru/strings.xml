@@ -151,4 +151,23 @@
          last opened, e.g. "5 minutes ago" or "yesterday, 9:40 pm". -->
     <string name="last_opened">Последний запуск: %1$s</string>
     <string name="game_live">Сейчас в эфире</string>
+    <string name="watch_shelf_title">История над избранным</string>
+    <string name="watch_shelf_state">История над избранным: %1$s</string>
+    <string name="watch_shelf_heading">%1$s · Продолжить просмотр и новинки</string>
+    <string name="watch_shelf_loading">Загружаем карточки приложения…</string>
+    <string name="watch_shelf_empty">Это приложение не передало историю или рекомендации в Android TV.</string>
+    <string name="watch_shelf_unavailable">Не удалось получить карточки Android TV. Проверь разрешение на доступ к телепрограммам.</string>
+    <string name="watch_shelf_help">При выборе приложения в избранном показывать «Продолжить просмотр» и его каналы с новинками. Доступны только данные, которые приложение передаёт Android TV. Разреши доступ к телепрограммам. Вверх — к карточкам, OK — смотреть, Вниз или Назад — вернуться. Вместо обложек из интернета показываются названия.</string>
+    <string name="watch_shelf_needs_dock">Сначала включи ряд избранного (dock_row) в теме.</string>
+    <string name="watch_shelf_permission_denied">Доступ к телепрограммам не разрешён. История выключена; её можно включить повторно.</string>
+    <string name="watch_shelf_open_failed">Приложение не смогло открыть этот материал. Открой его через плитку избранного.</string>
+    <string name="watch_continue">Продолжить просмотр</string>
+    <string name="watch_next">Следующая серия</string>
+    <string name="watch_new">Новинка</string>
+    <string name="watch_list">Буду смотреть</string>
+    <string name="watch_recommended">Рекомендации</string>
+    <string name="happ_youtube_title">Happ: VPN только для YouTube</string>
+    <string name="happ_youtube_help">Импортируй и активируй профиль «CleanYourTV - YouTube only» в Happ для своей подписки, затем переподключи Happ. Домены YouTube пойдут через VPN, остальной трафик — напрямую. Сам Happ останется подключённым. Нужна твоя действующая подписка на сервер. Если провайдер заблокировал маршрутизацию JSON-подписки: в Happ открой Настройки → Прокси для выбранных приложений → ВКЛ и отметь только YouTube (или SmartTube).</string>
+    <string name="happ_youtube_import">Импортировать в Happ</string>
+    <string name="happ_youtube_missing">Не удалось открыть профиль в Happ. Установи или обнови Happ либо выбери только YouTube в его настройках прокси для приложений.</string>
 </resources>

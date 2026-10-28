@@ -37,6 +37,8 @@ public final class LauncherSettingsActivity extends Activity {
     private TextView advancedChoice;
     private TextView followThemeChoice;
     private TextView openOnStartChoice;
+    private TextView watchShelfChoice;
+    private static final int WATCH_PERMISSION_REQUEST = 84;
     private int columns;
     private int rowsBelowDock;
     private int dockOpacity;
@@ -49,6 +51,23 @@ public final class LauncherSettingsActivity extends Activity {
         setContentView(R.layout.activity_launcher_settings);
         choices = getSharedPreferences(Config.SETTINGS_NAME, MODE_PRIVATE);
         Config config = Config.load(this);
+        watchShelfChoice = findViewById(R.id.watchShelfChoice);
+        watchShelfChoice.setOnClickListener(v -> {
+            if (!config.dockRow) {
+                Toast.makeText(this, R.string.watch_shelf_needs_dock, Toast.LENGTH_LONG).show();
+            } else if (choices.getBoolean(WatchShelf.KEY, false)) {
+                setWatchShelf(false);
+            } else if (checkSelfPermission(WatchRepository.PERMISSION) == PackageManager.PERMISSION_GRANTED) {
+                setWatchShelf(true);
+            } else {
+                new AlertDialog.Builder(this).setTitle(R.string.watch_shelf_title)
+                        .setMessage(R.string.watch_shelf_help)
+                        .setPositiveButton(R.string.enable, (dialog, which) ->
+                                requestPermissions(new String[]{WatchRepository.PERMISSION}, WATCH_PERMISSION_REQUEST))
+                        .setNegativeButton(android.R.string.cancel, null).show();
+            }
+        });
+        findViewById(R.id.happYoutubeChoice).setOnClickListener(v -> HappSetup.show(this));
         View reorderChoice = findViewById(R.id.reorderChoice);
         reorderChoice.setVisibility(config.launcherSettingsButton ? View.VISIBLE : View.GONE);
         reorderChoice.setOnClickListener(v -> {
@@ -140,7 +159,7 @@ public final class LauncherSettingsActivity extends Activity {
             if (!hasOnTvChoices()) return;
             choices.edit().remove("columns").remove(Config.ROWS_BELOW_DOCK_KEY).remove("animations")
                     .remove("advanced_effects").remove(Config.WALLPAPER_CHOICE_KEY)
-                    .remove(Config.DOCK_OPACITY_KEY).remove(OpenOnStart.KEY).commit();
+                    .remove(Config.DOCK_OPACITY_KEY).remove(OpenOnStart.KEY).remove(WatchShelf.KEY).commit();
             Config current = Config.load(this);
             columns = current.columns;
             rowsBelowDock = current.rowsBelowDock;
@@ -277,6 +296,8 @@ public final class LauncherSettingsActivity extends Activity {
     }
 
     private void refresh() {
+        watchShelfChoice.setText(getString(R.string.watch_shelf_state,
+                getString(choices.getBoolean(WatchShelf.KEY, false) ? R.string.on : R.string.off)));
         for (int i = 0; i < columnChoices.length; i++) {
             columnChoices[i].setSelected(columns == i + 4);
         }
@@ -305,7 +326,7 @@ public final class LauncherSettingsActivity extends Activity {
         return choices.contains("columns") || choices.contains(Config.ROWS_BELOW_DOCK_KEY)
                 || choices.contains("animations") || choices.contains("advanced_effects")
                 || choices.contains(Config.WALLPAPER_CHOICE_KEY) || choices.contains(Config.DOCK_OPACITY_KEY)
-                || choices.contains(OpenOnStart.KEY);
+                || choices.contains(OpenOnStart.KEY) || choices.contains(WatchShelf.KEY);
     }
 
     private void open(Intent intent) {
@@ -314,5 +335,20 @@ public final class LauncherSettingsActivity extends Activity {
         } catch (ActivityNotFoundException | SecurityException e) {
             Toast.makeText(this, R.string.not_available, Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void setWatchShelf(boolean enabled) {
+        choices.edit().putBoolean(WatchShelf.KEY, enabled).apply();
+        changed();
+        refresh();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int request, String[] permissions, int[] grants) {
+        super.onRequestPermissionsResult(request, permissions, grants);
+        if (request != WATCH_PERMISSION_REQUEST) return;
+        boolean granted = grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED;
+        setWatchShelf(granted);
+        if (!granted) Toast.makeText(this, R.string.watch_shelf_permission_denied, Toast.LENGTH_LONG).show();
     }
 }

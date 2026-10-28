@@ -143,6 +143,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private GlassView glass;
     private View ambient;
     private TextView heroName;
+    private WatchShelf watchShelf;
     /** The top shelf: heroName, plus the cinematic shelf's "Last opened" line and dock position dots. */
     private View hero;
     private TextView heroMeta;
@@ -639,6 +640,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                     AnimationUtils.loadAnimation(this, R.anim.tile_enter), 0.06f));
         }
         adapter = new AppAdapter(this, this, COLUMNS, cfg);
+        if (cfg.dockRow && getSharedPreferences(Config.SETTINGS_NAME, MODE_PRIVATE).getBoolean(WatchShelf.KEY, false)
+                && checkSelfPermission(WatchRepository.PERMISSION) == PackageManager.PERMISSION_GRANTED) {
+            watchShelf = new WatchShelf(this, root, () -> focusTile(lastFocused),
+                    () -> firstTopButton().requestFocus());
+        }
         dockApps = cfg.dockApps;
         fillDockLeavesSlots = !cfg.fillDock;
         Order savedOrder = Order.load(Order.file(this));
@@ -658,7 +664,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             int gridRows = itemH * rowsBelowDock;
             // Keep the hero below the header when the library is enabled on a short screen,
             // even when the theme requests an extra visible row below the dock.
-            int shelfClearance = cfg.appLibrary ? hero.getMeasuredHeight() + (int) (40 * density) : 0;
+            int shelfClearance = watchShelf != null ? (int) (220 * density)
+                    : cfg.appLibrary ? hero.getMeasuredHeight() + (int) (40 * density) : 0;
             int want = Math.max(shelfClearance, h - dockRow - gridRows - (int) (AppAdapter.BOTTOM_ROOM_DP * density));
             // Where the rows cannot fit even at the smallest tile (3 rows with the title on), the title keeps its
             // room above the dock and the last rows run off the bottom instead of the title drawing over the clock.
@@ -872,6 +879,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         getWindow().getDecorView().getViewTreeObserver().addOnGlobalFocusChangeListener((oldF, newF) -> {
             boolean onTile = newF != null && newF.getId() == R.id.card;
             if (!onTile) hideGlass();
+            if (watchShelf != null && !onTile && !watchShelf.contains(newF)) watchShelf.hide();
         });
 
         packageFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
@@ -1000,6 +1008,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     protected void onResume() {
         super.onResume();
         resumed = true;
+        if (watchShelf != null) {
+            watchShelf.resume();
+            grid.post(() -> {
+                int pos = focusedTilePosition();
+                if (resumed && pos >= 0) onTileFocused(pos, getCurrentFocus());
+            });
+        }
         // A festival that started or ended while Home was in the background: rebuild with or without it.
         if (festive != festival.active(LocalDate.now())) {
             recreate();
@@ -1213,6 +1228,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     protected void onPause() {
         super.onPause();
         resumed = false;
+        if (watchShelf != null) watchShelf.pause();
         root.removeCallbacks(showIdleClock);
         endReorder();   // Home or another app while reordering keeps the order so far
         wallpaperPlayer.stop();
@@ -1404,6 +1420,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     /** The start shared by reorder and edit-dock mode. False when there is nothing to move. */
     private boolean beginReorder() {
         if (adapter.movableCount() < 2) return false;
+        if (watchShelf != null) watchShelf.hide();
         // Before the reload below: once it has dropped the empty slots, the dock row also shows grid apps.
         dockInSession = new HashSet<>();
         dockedAtStart = adapter.dockFilled();
@@ -1652,6 +1669,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     @Override
     public void onBackPressed() {
+        if (watchShelf != null && watchShelf.hasFocus()) {
+            focusTile(lastFocused);
+            return;
+        }
         // Home screen: Back goes nowhere.
     }
 
@@ -1761,7 +1782,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 else grid.smoothScrollBy(0, dy);
             }
             showHero(position, scroll ? r.top - dy : r.top);
+            if (watchShelf != null && !reordering) {
+                watchShelf.show(adapter.packageAt(position), adapter.labelAt(position), scroll ? r.top - dy : r.top);
+                hero.animate().cancel();
+                hero.setAlpha(0f);
+            } else if (watchShelf != null) watchShelf.hide();
         } else {
+            if (watchShelf != null) watchShelf.hide();
             // Below the dock (or in a plain grid) the glow follows the tile without the big name; letting it
             // fade out left the grid on plain black.
             showGlowOnly(position);
@@ -2310,6 +2337,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     @Override
     public boolean onTileVerticalKey(int position, int keyCode) {
+        if (!reordering && watchShelf != null && keyCode == KeyEvent.KEYCODE_DPAD_UP
+                && (singleRow || position < COLUMNS) && watchShelf.focusFirst()) return true;
         int count = adapter.appCount();
         int target;
         if (singleRow) {
@@ -2357,6 +2386,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     }
 
     @Override public void onLibraryFocused() {
+        if (watchShelf != null) watchShelf.hide();
         libraryFocusPending = false;
         hideGlass();
         hideHero();
