@@ -61,8 +61,14 @@ The launcher's own page has these rows, top to bottom:
   transitions; they may use more memory) once animations are on.
 - **Open on start**, only with `open_on_start_choice`: Off, or an app that opens instead of Home the first
   time Home comes up after the TV starts. Once per boot, so Home and Back still reach the launcher.
-- **Follow theme (reset on-TV choices)**, which clears every choice above. Pushing or resetting a theme
+- **Follow theme (reset on-TV choices)**, which clears the on-TV appearance choices, including the history shelf. Pushing or resetting a theme
   clears them too.
+- **History above favourites** (personal fork, off by default): public Continue watching and preview
+  cards for the focused favourite. Requires the TV listings permission; Up enters cards, OK opens the
+  programme, Down or Back returns. Only data published by the app is visible.
+- **Happ: VPN only for YouTube** (personal fork): imports a YouTube-only routing profile into Happ.
+  Reconnect Happ after activating it for the subscription; other traffic goes directly. The tunnel stays
+  connected. See the [setup and limitations](favorites-history-happ.ru.md).
 - **Choose default home** opens Android's home picker, and **TV system settings** the TV's own settings
   page.
 

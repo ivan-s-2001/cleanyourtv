@@ -132,12 +132,6 @@
             android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/defaultHomeChoice"
-            style="@style/SettingsRow"
-            android:layout_marginTop="28dp"
-            android:text="@string/home_settings" />
-
-        <TextView
             android:id="@+id/watchShelfChoice"
             style="@style/SettingsRow"
             android:layout_marginTop="18dp" />
@@ -155,6 +149,12 @@
             style="@style/SettingsRow"
             android:layout_marginTop="18dp"
             android:text="@string/happ_youtube_title" />
+
+        <TextView
+            android:id="@+id/defaultHomeChoice"
+            style="@style/SettingsRow"
+            android:layout_marginTop="28dp"
+            android:text="@string/home_settings" />
 
         <TextView
             android:layout_width="match_parent"
